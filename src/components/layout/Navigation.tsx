@@ -13,7 +13,9 @@ import {
   BarChart3,
   CreditCard,
   DollarSign,
-  Receipt
+  Receipt,
+  Menu,
+  X
 } from 'lucide-react'
 
 interface User {
@@ -31,6 +33,7 @@ interface NavigationProps {
 export default function Navigation({ user, onLogout }: NavigationProps) {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -59,6 +62,12 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
   const handleLogout = () => {
     onLogout()
     setIsUserMenuOpen(false)
+    setIsMobileMenuOpen(false)
+  }
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+    setIsUserMenuOpen(false)
   }
 
   return (
@@ -84,7 +93,23 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
           
           {user && (
             <>
-              {/* Navigation Links */}
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button
+                  onClick={toggleMobileMenu}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                  aria-expanded="false"
+                >
+                  <span className="sr-only">Open main menu</span>
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <Menu className="block h-6 w-6" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
+              {/* Navigation Links - Desktop */}
               <div className="hidden md:flex items-center space-x-8">
                 {['admin', 'SUPER_ADMIN'].includes(user.role) ? (
                   <>
@@ -136,7 +161,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               </div>
               
               {/* Right side controls */}
-              <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-4">
                 {/* Dark Mode Toggle */}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500 dark:text-gray-400">Theme</span>
@@ -186,6 +211,118 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
             </>
           )}
         </div>
+        
+        {/* Mobile menu */}
+        {user && isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              {/* Mobile Navigation Links */}
+              {['admin', 'SUPER_ADMIN'].includes(user.role) ? (
+                <>
+                  <button
+                    onClick={() => {
+                      router.push('/admin/dashboard')
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    <BarChart3 className="h-5 w-5" />
+                    <span>Dashboard</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push('/admin/investors')
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    <Users className="h-5 w-5" />
+                    <span>Investors</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push('/admin/payouts')
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    <span>Payouts</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push('/admin/expenses')
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    <Receipt className="h-5 w-5" />
+                    <span>Expenses</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push('/admin/register')
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    <UserPlus className="h-5 w-5" />
+                    <span>Add Investor</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    router.push('/dashboard')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                >
+                  <BarChart3 className="h-5 w-5" />
+                  <span>Dashboard</span>
+                </button>
+              )}
+              
+              {/* Mobile User Info and Controls */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                <div className="flex items-center px-3 py-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium text-gray-800 dark:text-gray-200">{user.name}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Role: {user.role.charAt(0).toUpperCase() + user.role.slice(1)}</div>
+                  </div>
+                </div>
+                
+                {/* Mobile Dark Mode Toggle */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Theme</span>
+                    <button
+                      onClick={toggleDarkMode}
+                      className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                      <span className="sr-only">Toggle dark mode</span>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-300 transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-1'}`}>
+                        {isDarkMode ? <Moon className="h-3 w-3 m-0.5" /> : <Sun className="h-3 w-3 m-0.5" />}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Mobile Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

@@ -139,7 +139,8 @@ export default function InvestorsOverview() {
       <div className="p-6">
         {filteredInvestors.length > 0 ? (
           <>
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -212,6 +213,79 @@ export default function InvestorsOverview() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden space-y-4">
+              {filteredInvestors.map((investor) => (
+                <div key={investor.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{investor.name}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{investor.email}</p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      investor.active 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    }`}>
+                      {investor.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Invested Amount</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        ${investor.invested_amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        ₫{investor.balance_usdt.toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Profit</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        ₫{investor.total_profit.toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">ROI Range</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {investor.roi_min}% - {investor.roi_max}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Created</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {new Date(investor.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Edit">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="text-cyan-600 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300" title="Add Transaction">
+                        <Plus className="w-4 h-4" />
+                      </button>
+                      <button className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300" title={investor.active ? "Deactivate" : "Activate"}>
+                        {investor.active ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                      </button>
+                      <button className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Financial Summary Cards */}
