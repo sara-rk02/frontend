@@ -107,7 +107,7 @@ export default function TransactionModals({
     }
     
     try {
-      const response = await fetch('http://localhost:8080/api/expenses/', {
+      const response = await fetch('https://api.arbitrageyield.com/api/expenses/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
