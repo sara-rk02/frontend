@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, ArrowRightLeft, Flag, CreditCard, FileText, DollarSign, Calendar, ArrowDown, ArrowUp, UserPlus, User, Mail, Lock } from 'lucide-react'
+import { getApiUrl } from '@/config/api'
 
 interface TransactionModalsProps {
   showInrModal: boolean
@@ -57,12 +58,12 @@ export default function TransactionModals({
     }
     
     try {
-      // Extract user ID from the selected option (assuming format: "John Doe (Investor)" -> user ID 2)
+      // Extract user ID from the selected option (using actual user ID 3 for Test User)
       const userId = userSelect === 'Admin' ? 1 : 
-                     userSelect === 'John Doe (Investor)' ? 2 :
-                     userSelect === 'Jane Smith (Investor)' ? 3 : 1
+                     userSelect === 'John Doe (Investor)' ? 3 :
+                     userSelect === 'Jane Smith (Investor)' ? 3 : 3
       
-      const response = await fetch('http://localhost:8002/api/payouts/', {
+      const response = await fetch(getApiUrl('/api/payouts/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,11 +93,48 @@ export default function TransactionModals({
     }
   }
 
-  const handleExpenseSubmit = (e: React.FormEvent) => {
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle expense submission
-    console.log('Expense submitted')
-    onCloseExpenseModal()
+    
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
+    const amount = formData.get('amount') as string
+    const description = formData.get('description') as string
+    const date = formData.get('date') as string
+    
+    if (!amount || !description || !date) {
+      alert('Please fill in all fields')
+      return
+    }
+    
+    try {
+      const response = await fetch('http://localhost:8080/api/expenses/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          description: description,
+          expense_date: date
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        console.log('Expense created successfully:', data.data)
+        alert('Expense added successfully!')
+        onCloseExpenseModal()
+        // Refresh the page to show updated data
+        window.location.reload()
+      } else {
+        console.error('Failed to create expense:', data.message)
+        alert(`Failed to create expense: ${data.message}`)
+      }
+    } catch (error) {
+      console.error('Error creating expense:', error)
+      alert('Network error. Please try again.')
+    }
   }
 
   const handleCustomerSubmit = (e: React.FormEvent) => {
@@ -396,7 +434,7 @@ export default function TransactionModals({
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <DollarSign className="text-gray-400" />
                       </div>
-                      <input type="number" className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium" id="expenseAmount" step="0.01" min="0" required placeholder="0.00" />
+                      <input type="number" name="amount" className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium" id="expenseAmount" step="0.01" min="0" required placeholder="0.00" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -405,7 +443,7 @@ export default function TransactionModals({
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Calendar className="text-gray-400" />
                       </div>
-                      <input type="date" className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium" id="expenseDate" required />
+                      <input type="date" name="date" className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium" id="expenseDate" required />
                     </div>
                   </div>
                 </div>
@@ -417,7 +455,7 @@ export default function TransactionModals({
                     <div className="absolute top-4 left-4 flex items-start pointer-events-none">
                       <FileText className="text-gray-400" />
                     </div>
-                    <textarea className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium resize-none" id="expenseDescription" rows={4} required placeholder="Describe the expense purpose and details..."></textarea>
+                    <textarea name="description" className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium resize-none" id="expenseDescription" rows={4} required placeholder="Describe the expense purpose and details..."></textarea>
                   </div>
                 </div>
                 

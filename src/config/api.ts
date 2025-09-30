@@ -1,6 +1,6 @@
 // Global API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://198.211.112.68:8080',
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/auth/login',

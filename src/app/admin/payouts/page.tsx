@@ -82,7 +82,7 @@ export default function PayoutsPage() {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/')
-      } else if (user && user.role !== 'admin') {
+      } else if (user && !['admin', 'SUPER_ADMIN'].includes(user.role)) {
         router.push('/dashboard')
       }
     }
@@ -134,14 +134,14 @@ export default function PayoutsPage() {
   }, [currentPage, itemsPerPage])
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && ['admin', 'SUPER_ADMIN'].includes(user?.role)) {
       fetchPayouts()
       fetchUsers()
     }
   }, [isAuthenticated, user, fetchPayouts])
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && ['admin', 'SUPER_ADMIN'].includes(user?.role)) {
       fetchPayouts()
     }
   }, [currentPage, itemsPerPage, fetchPayouts, isAuthenticated, user?.role])
