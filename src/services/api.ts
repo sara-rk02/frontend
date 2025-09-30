@@ -66,7 +66,15 @@ class ApiService {
       const data = await response.json()
 
       if (response.ok) {
-        return { success: true, data }
+        // Backend returns { success, user, token, message }
+        // Frontend expects { success, data: { user, token } }
+        return { 
+          success: true, 
+          data: {
+            user: data.user,
+            token: data.token
+          }
+        }
       } else {
         return { success: false, error: data.message || 'Login failed' }
       }
@@ -153,17 +161,11 @@ class ApiService {
   }
 
   async logout(): Promise<void> {
-    try {
-      await fetch(getAuthUrl('LOGOUT'), {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-      })
-    } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-    }
+    // JWT tokens are stateless, so logout is handled client-side
+    // Just remove the token from localStorage
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('token_timestamp')
   }
 }
 

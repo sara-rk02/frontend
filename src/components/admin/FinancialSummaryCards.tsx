@@ -19,10 +19,17 @@ export default function FinancialSummaryCards() {
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
-        const response = await fetch(getDashboardUrl('SUMMARY'))
+        const token = localStorage.getItem('token')
+        const response = await fetch(getDashboardUrl('SUMMARY'), {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        })
         const data = await response.json()
         
-        if (response.ok && data.success) {
+        if (response.ok && data.success && data.data) {
           setFinancialData({
             totalInvestedUsd: data.data.total_invested_usd || 0,
             totalInvestedAed: data.data.total_invested_aed || 0,

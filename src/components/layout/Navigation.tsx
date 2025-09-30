@@ -86,7 +86,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
             <>
               {/* Navigation Links */}
               <div className="hidden md:flex items-center space-x-8">
-                {user.role === 'admin' ? (
+                {['admin', 'SUPER_ADMIN'].includes(user.role) ? (
                   <>
                     <button
                       onClick={() => router.push('/admin/dashboard')}

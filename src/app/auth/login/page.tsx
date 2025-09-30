@@ -9,7 +9,7 @@ export default function AuthLoginPage() {
   const router = useRouter()
   const { login } = useAuthContext()
   const [formData, setFormData] = useState({
-    email: 'admin.a@usdtportal.com',
+    email: 'admin@example.com',
     password: 'admin123',
     role: 'admin'
   })
@@ -165,9 +165,9 @@ export default function AuthLoginPage() {
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Demo Credentials:</h3>
             <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-              <p><strong>Admin:</strong> admin.a@usdtportal.com / admin123</p>
-              <p><strong>Investor:</strong> john.doe@example.com / investor123</p>
-              <p><strong>Other Investors:</strong> jane.smith@example.com, sarah.johnson@example.com, etc.</p>
+              <p><strong>Admin:</strong> admin@example.com / admin123</p>
+              <p><strong>Investor:</strong> john.smith@example.com / investor123</p>
+              <p><strong>Other Investors:</strong> sarah.johnson@example.com, michael.brown@example.com</p>
             </div>
           </div>
         </div>

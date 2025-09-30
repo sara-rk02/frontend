@@ -11,9 +11,11 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js'
 import { Line, Bar } from 'react-chartjs-2'
-import { getChartUrl } from '@/config/api'
+import { apiService } from '@/services/api'
+import { Coins, BarChart3 } from 'lucide-react'
 
 ChartJS.register(
   CategoryScale,
@@ -23,7 +25,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 )
 
 interface User {
@@ -31,9 +34,9 @@ interface User {
   name: string
   email: string
   role: string
-  invested_amount: number
-  total_profit: number
-  profit_usdt: number
+  invested_amount?: number
+  total_profit?: number
+  profit_usdt?: number
 }
 
 interface ChartsSectionProps {
@@ -47,11 +50,10 @@ export default function ChartsSection({ user }: ChartsSectionProps) {
   useEffect(() => {
     const fetchChartData = async () => {
       try {
-        const response = await fetch(getChartUrl('DATA'))
-        const data = await response.json()
+        const response = await apiService.getChartData()
         
-        if (response.ok && data.success) {
-          setChartData(data.data)
+        if (response.success && response.data) {
+          setChartData(response.data)
         } else {
           // Fallback to mock data if API fails
           const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -105,12 +107,12 @@ export default function ChartsSection({ user }: ChartsSectionProps) {
   }
 
   // Use real data from API
-  const labels = chartData.roi_trend.map((item: any) => item.date)
-  const roiValues = chartData.roi_trend.map((item: any) => item.roi)
-  const profitValues = chartData.profit_trend.map((item: any) => item.profit)
+  const labels = chartData.roi_trend?.map((item: any) => item.date) || []
+  const roiValues = chartData.roi_trend?.map((item: any) => item.roi) || []
+  const profitValues = chartData.profit_trend?.map((item: any) => item.profit) || []
   
   // Calculate cumulative balance from ROI history
-  const investedAmount = user.invested_amount
+  const investedAmount = user.invested_amount || 1000
   const cumulativeBalance: number[] = []
   let runningBalance = investedAmount
 
@@ -296,5 +298,3 @@ export default function ChartsSection({ user }: ChartsSectionProps) {
   )
 }
 
-// Import icons
-import { Coins, BarChart3 } from 'lucide-react'

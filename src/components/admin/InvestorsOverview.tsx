@@ -9,7 +9,6 @@ interface Investor {
   name: string
   email: string
   invested_amount: number
-  invested_amount_aed: number
   total_profit: number
   roi_min: number
   roi_max: number
@@ -26,11 +25,18 @@ export default function InvestorsOverview() {
   useEffect(() => {
     const fetchInvestors = async () => {
       try {
-        const response = await fetch(getDashboardUrl('INVESTORS'))
+        const token = localStorage.getItem('token')
+        const response = await fetch(getDashboardUrl('INVESTORS'), {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        })
         const data = await response.json()
         
-        if (response.ok && data.success) {
-          setInvestors(data.data)
+        if (response.ok) {
+          setInvestors(data.data || [])
         } else {
           // Fallback to mock data
           setInvestors([
@@ -39,7 +45,6 @@ export default function InvestorsOverview() {
       name: 'John Doe',
       email: 'john@example.com',
       invested_amount: 10000,
-      invested_amount_aed: 36700,
       total_profit: 1500,
       roi_min: 0.5,
       roi_max: 2.0,
@@ -52,7 +57,6 @@ export default function InvestorsOverview() {
       name: 'Jane Smith',
       email: 'jane@example.com',
       invested_amount: 5000,
-      invested_amount_aed: 18350,
       total_profit: 750,
       roi_min: 0.3,
       roi_max: 1.5,
@@ -65,7 +69,6 @@ export default function InvestorsOverview() {
       name: 'Bob Johnson',
       email: 'bob@example.com',
       invested_amount: 15000,
-      invested_amount_aed: 55050,
       total_profit: 2250,
       roi_min: 0.8,
       roi_max: 2.5,
@@ -94,9 +97,9 @@ export default function InvestorsOverview() {
     ? investors.filter(investor => investor.active)
     : investors
 
-  const totalInvestedAed = investors.reduce((sum, investor) => sum + investor.invested_amount_aed, 0)
+  const totalInvestedAed = investors.reduce((sum, investor) => sum + (investor.invested_amount * 3.667), 0)
   const totalProfit = investors.reduce((sum, investor) => sum + investor.total_profit, 0)
-  const totalBalance = investors.reduce((sum, investor) => sum + getTotalBalance(investor.invested_amount_aed, investor.total_profit), 0)
+  const totalBalance = investors.reduce((sum, investor) => sum + getTotalBalance(investor.invested_amount * 3.667, investor.total_profit), 0)
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -162,13 +165,13 @@ export default function InvestorsOverview() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">${investor.invested_amount.toFixed(2)}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">₫{investor.invested_amount_aed.toFixed(2)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">₫{(investor.invested_amount * 3.667).toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-green-600 dark:text-green-400">₫{investor.total_profit.toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">₫{getTotalBalance(investor.invested_amount_aed, investor.total_profit).toFixed(2)}</div>
+                        <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">₫{getTotalBalance(investor.invested_amount * 3.667, investor.total_profit).toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">

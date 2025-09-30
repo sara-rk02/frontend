@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import { useAuthContext } from '@/contexts/AuthContext'
@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react'
 import { getApiUrl } from '@/config/api'
+import SearchableSelect from '@/components/ui/SearchableSelect'
 
 interface Payout {
   id: number
@@ -34,6 +35,17 @@ interface User {
   name: string
   email: string
   role: string
+}
+
+interface PaginationInfo {
+  page: number
+  per_page: number
+  total: number
+  pages: number
+  has_next: boolean
+  has_prev: boolean
+  next_page: number | null
+  prev_page: number | null
 }
 
 export default function PayoutsPage() {
@@ -53,6 +65,18 @@ export default function PayoutsPage() {
     amount: '',
     date: ''
   })
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    per_page: 10,
+    total: 0,
+    pages: 0,
+    has_next: false,
+    has_prev: false,
+    next_page: null,
+    prev_page: null
+  })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   useEffect(() => {
     if (!isLoading) {
@@ -64,33 +88,79 @@ export default function PayoutsPage() {
     }
   }, [isAuthenticated, user, isLoading, router])
 
-  useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
-      fetchPayouts()
-      fetchUsers()
-    }
-  }, [isAuthenticated, user])
-
-  const fetchPayouts = async () => {
+  const fetchPayouts = useCallback(async () => {
     try {
-      const response = await fetch(getApiUrl('/api/payouts/'))
+      const token = localStorage.getItem('token')
+      const response = await fetch(getApiUrl(`/api/payouts/?page=${currentPage}&per_page=${itemsPerPage}`), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      })
       const data = await response.json()
-      if (data.success) {
+      
+      if (data.success && data.data) {
         setPayouts(data.data)
+        // Set default pagination if not provided
+        setPagination(data.pagination || {
+          page: currentPage,
+          per_page: itemsPerPage,
+          total: data.data.length,
+          pages: Math.ceil(data.data.length / itemsPerPage),
+          has_next: false,
+          has_prev: currentPage > 1,
+          next_page: null,
+          prev_page: currentPage > 1 ? currentPage - 1 : null
+        })
+      } else if (Array.isArray(data)) {
+        // Fallback for non-paginated response
+        setPayouts(data)
+        setPagination({
+          page: 1,
+          per_page: data.length,
+          total: data.length,
+          pages: 1,
+          has_next: false,
+          has_prev: false,
+          next_page: null,
+          prev_page: null
+        })
       }
     } catch (error) {
       console.error('Failed to fetch payouts:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, itemsPerPage])
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin') {
+      fetchPayouts()
+      fetchUsers()
+    }
+  }, [isAuthenticated, user, fetchPayouts])
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin') {
+      fetchPayouts()
+    }
+  }, [currentPage, itemsPerPage, fetchPayouts, isAuthenticated, user?.role])
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/dashboard/investors'))
+      const token = localStorage.getItem('token')
+      const response = await fetch(getApiUrl('/api/investors/'), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      })
       const data = await response.json()
-      if (data.success) {
+      // Handle both wrapped and direct data formats
+      if (data.success && data.data) {
         setUsers(data.data)
+      } else if (Array.isArray(data)) {
+        setUsers(data)
       }
     } catch (error) {
       console.error('Failed to fetch users:', error)
@@ -100,10 +170,12 @@ export default function PayoutsPage() {
   const handleAddPayout = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl('/api/payouts/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           user_id: parseInt(formData.user_id),
@@ -114,13 +186,13 @@ export default function PayoutsPage() {
       
       const data = await response.json()
       
-      if (response.ok && data.success) {
+      if (response.ok && data.id) {
         setShowAddModal(false)
         setFormData({ user_id: '', amount: '', date: '' })
         fetchPayouts()
         alert('Payout added successfully!')
       } else {
-        alert(`Failed to add payout: ${data.message}`)
+        alert(`Failed to add payout: ${data.message || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error adding payout:', error)
@@ -133,10 +205,12 @@ export default function PayoutsPage() {
     if (!editingPayout) return
 
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl(`/api/payouts/${editingPayout.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           user_id: parseInt(formData.user_id),
@@ -147,14 +221,14 @@ export default function PayoutsPage() {
       
       const data = await response.json()
       
-      if (response.ok && data.success) {
+      if (response.ok && data.id) {
         setShowEditModal(false)
         setEditingPayout(null)
         setFormData({ user_id: '', amount: '', date: '' })
         fetchPayouts()
         alert('Payout updated successfully!')
       } else {
-        alert(`Failed to update payout: ${data.message}`)
+        alert(`Failed to update payout: ${data.message || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error updating payout:', error)
@@ -166,17 +240,22 @@ export default function PayoutsPage() {
     if (!confirm('Are you sure you want to delete this payout?')) return
 
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl(`/api/payouts/${id}`), {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
       })
       
       const data = await response.json()
       
-      if (response.ok && data.success) {
+      if (response.ok) {
         fetchPayouts()
         alert('Payout deleted successfully!')
       } else {
-        alert(`Failed to delete payout: ${data.message}`)
+        alert(`Failed to delete payout: ${data.message || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error deleting payout:', error)
@@ -186,10 +265,12 @@ export default function PayoutsPage() {
 
   const openEditModal = (payout: Payout) => {
     setEditingPayout(payout)
+    // Convert ISO date to YYYY-MM-DD format for HTML date input
+    const dateValue = payout.date ? new Date(payout.date).toISOString().split('T')[0] : ''
     setFormData({
       user_id: payout.user_name,
       amount: payout.amount.toString(),
-      date: payout.date
+      date: dateValue
     })
     setShowEditModal(true)
   }
@@ -379,6 +460,105 @@ export default function PayoutsPage() {
             </table>
           </div>
           
+          {/* Pagination Controls */}
+          {payouts.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={!pagination.has_prev}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.min(pagination.pages, currentPage + 1))}
+                  disabled={!pagination.has_next}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Showing{' '}
+                    <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
+                    {' '}to{' '}
+                    <span className="font-medium">
+                      {Math.min(currentPage * itemsPerPage, pagination.total)}
+                    </span>
+                    {' '}of{' '}
+                    <span className="font-medium">{pagination.total}</span>
+                    {' '}results
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Items per page:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value))
+                      setCurrentPage(1)
+                    }}
+                    className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={!pagination.has_prev}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                      const startPage = Math.max(1, currentPage - 2)
+                      const pageNum = startPage + i
+                      if (pageNum > pagination.pages) return null
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            pageNum === currentPage
+                              ? 'z-10 bg-blue-50 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-300'
+                              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    })}
+                    
+                    <button
+                      onClick={() => setCurrentPage(Math.min(pagination.pages, currentPage + 1))}
+                      disabled={!pagination.has_next}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Next</span>
+                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {filteredPayouts.length === 0 && (
             <div className="text-center py-12">
               <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
@@ -414,24 +594,20 @@ export default function PayoutsPage() {
                     </div>
                     
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Select User
-                        </label>
-                        <select
-                          value={formData.user_id}
-                          onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                          required
-                        >
-                          <option value="">Choose a user</option>
-                          {users.map((user) => (
-                            <option key={user.id} value={user.id}>
-                              {user.name} ({user.role})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <SearchableSelect
+                        label="Select User"
+                        options={users.map(user => ({
+                          id: user.id,
+                          name: user.name,
+                          email: user.email,
+                          role: user.role
+                        }))}
+                        value={formData.user_id}
+                        onChange={(value) => setFormData({ ...formData, user_id: value })}
+                        placeholder="Search and select a user..."
+                        required
+                        maxDisplayItems={10}
+                      />
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

@@ -1,6 +1,6 @@
 // Global API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/auth/login',
@@ -9,16 +9,29 @@ export const API_CONFIG = {
     },
     DASHBOARD: {
       SUMMARY: '/api/dashboard/summary',
-      INVESTORS: '/api/dashboard/investors'
+      INVESTORS: '/api/investors/'
     },
-    CHARTS: {
-      DATA: '/api/charts/data'
+    INVESTORS: {
+      LIST: '/api/investors/',
+      GET: '/api/investors/',
+      UPDATE: '/api/investors/',
+      DELETE: '/api/investors/'
+    },
+    TRANSACTIONS: {
+      LIST: '/api/transactions/'
+    },
+    PAYOUTS: {
+      LIST: '/api/payouts/',
+      CREATE: '/api/payouts/'
     },
     EXPENSES: {
       LIST: '/api/expenses/',
       CREATE: '/api/expenses/',
       UPDATE: '/api/expenses/',
       DELETE: '/api/expenses/'
+    },
+    CHARTS: {
+      DATA: '/api/charts/data'
     },
     HEALTH: '/api/health/'
   }

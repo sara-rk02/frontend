@@ -27,7 +27,7 @@ export default function DashboardPage() {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/')
-      } else if (user && user.role === 'admin') {
+      } else if (user && ['admin', 'SUPER_ADMIN'].includes(user.role)) {
         router.push('/admin/dashboard')
       }
     }

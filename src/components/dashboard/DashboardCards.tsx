@@ -7,9 +7,9 @@ interface User {
   name: string
   email: string
   role: string
-  invested_amount: number
-  total_profit: number
-  profit_usdt: number
+  invested_amount?: number
+  total_profit?: number
+  profit_usdt?: number
 }
 
 interface DashboardCardsProps {
@@ -18,13 +18,17 @@ interface DashboardCardsProps {
 }
 
 export default function DashboardCards({ user, totalPayouts = 500 }: DashboardCardsProps) {
-  const totalBalance = user.invested_amount + user.total_profit
-  const netUsdtProfit = user.profit_usdt - totalPayouts
+  const investedAmount = user.invested_amount || 0
+  const totalProfit = user.total_profit || 0
+  const profitUsdt = user.profit_usdt || 0
+  
+  const totalBalance = investedAmount + totalProfit
+  const netUsdtProfit = profitUsdt - totalPayouts
 
   const cards = [
     {
       title: 'Invested Amount',
-      value: `$${user.invested_amount.toFixed(2)}`,
+      value: `$${investedAmount.toFixed(2)}`,
       subtitle: 'Original Capital',
       icon: Coins,
       color: 'text-blue-600',
@@ -33,7 +37,7 @@ export default function DashboardCards({ user, totalPayouts = 500 }: DashboardCa
     },
     {
       title: 'Total Profit',
-      value: `₫${user.total_profit.toFixed(2)}`,
+      value: `₫${totalProfit.toFixed(2)}`,
       subtitle: 'Lifetime Profit',
       icon: TrendingUp,
       color: 'text-green-600',

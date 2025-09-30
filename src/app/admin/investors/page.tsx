@@ -64,23 +64,32 @@ export default function InvestorsPage() {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/')
-      } else if (user && user.role !== 'admin') {
+      } else if (user && !['admin', 'SUPER_ADMIN'].includes(user.role)) {
         router.push('/dashboard')
       }
     }
   }, [isAuthenticated, user, isLoading, router])
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && ['admin', 'SUPER_ADMIN'].includes(user?.role || '')) {
       fetchInvestors()
     }
   }, [isAuthenticated, user])
 
   const fetchInvestors = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/dashboard/investors'))
+      const token = localStorage.getItem('token')
+      const response = await fetch(getApiUrl('/api/investors/'), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      })
       const data = await response.json()
-      if (data.success) {
+      // Handle both response formats: direct array or {success, data}
+      if (Array.isArray(data)) {
+        setInvestors(data)
+      } else if (data.success && data.data) {
         setInvestors(data.data)
       }
     } catch (error) {
@@ -93,10 +102,12 @@ export default function InvestorsPage() {
   const handleAddInvestor = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl('/api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           name: formData.name,
@@ -138,10 +149,12 @@ export default function InvestorsPage() {
     if (!editingInvestor) return
 
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl(`/api/investors/${editingInvestor.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           name: formData.name,
@@ -182,8 +195,13 @@ export default function InvestorsPage() {
     if (!confirm('Are you sure you want to delete this investor?')) return
 
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl(`/api/investors/${id}`), {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
       })
       
       const data = await response.json()
@@ -209,10 +227,12 @@ export default function InvestorsPage() {
     }
     
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(getApiUrl(`/api/investors/${id}/toggle-status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           active: !currentStatus
@@ -396,10 +416,10 @@ export default function InvestorsPage() {
                       <div className="text-sm text-gray-900 dark:text-white">
                         <div className="flex items-center">
                           <DollarSign className="h-4 w-4 text-green-500 mr-1" />
-                          ${investor.invested_amount.toLocaleString()}
+                          ${(investor.invested_amount || 0).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          ₫{investor.invested_amount_aed.toLocaleString()}
+                          ₫{(investor.invested_amount_aed || 0).toLocaleString()}
                         </div>
                       </div>
                     </td>
@@ -407,10 +427,10 @@ export default function InvestorsPage() {
                       <div className="text-sm text-gray-900 dark:text-white">
                         <div className="flex items-center">
                           <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                          ₫{investor.total_profit.toLocaleString()}
+                          ₫{(investor.total_profit || 0).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Balance: ₫{investor.balance_usdt.toLocaleString()}
+                          Balance: ₫{(investor.balance_usdt || 0).toLocaleString()}
                         </div>
                       </div>
                     </td>

@@ -12,7 +12,7 @@ export default function HomePage() {
     if (!isLoading) {
       if (isAuthenticated && user) {
         // User is logged in, redirect to appropriate dashboard
-        if (user.role === 'admin') {
+        if (['admin', 'SUPER_ADMIN'].includes(user.role)) {
           router.push('/admin/dashboard')
         } else {
           router.push('/dashboard')
