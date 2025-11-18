@@ -1,16 +1,39 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Users, DollarSign, TrendingUp, UserPlus } from 'lucide-react'
 import CurrencyDisplay from '../common/CurrencyDisplay'
+import { apiService } from '@/services/api'
 
 export default function AdminOverviewCards() {
-  // Mock data - replace with actual API data
-  const stats = {
-    totalInvestors: 24,
-    totalInvestments: 245000,
-    totalProfits: 12500,
-    newInvestorsThisMonth: 5
-  }
+  const [stats, setStats] = useState({
+    totalInvestors: 0,
+    totalInvestments: 0,
+    totalProfits: 0,
+    newInvestorsThisMonth: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await apiService.getDashboardSummary()
+        if (response.success && response.data) {
+          setStats({
+            totalInvestors: response.data.active_investors || 0,
+            totalInvestments: response.data.total_invested_usd || 0,
+            totalProfits: response.data.total_profit_aed || 0,
+            newInvestorsThisMonth: response.data.active_investors || 0 // Placeholder
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin overview stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
 
   const cards = [
     {

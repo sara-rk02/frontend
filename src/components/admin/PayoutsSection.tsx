@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { DollarSign } from 'lucide-react'
 import CurrencyDisplay from '../common/CurrencyDisplay'
+import { apiService } from '@/services/api'
 
 interface Payout {
   id: number
@@ -14,34 +16,24 @@ interface Payout {
 }
 
 export default function PayoutsSection() {
-  // Mock data - replace with actual API data
-  const payouts: Payout[] = [
-    {
-      id: 1,
-      user_name: 'John Doe',
-      role: 'investor',
-      date: '2024-01-15',
-      amt: 500.00,
-      created_at: '2024-01-15 10:30:00'
-    },
-    {
-      id: 2,
-      user_name: 'Admin A',
-      role: 'admin',
-      admin_name: 'Admin A',
-      date: '2024-01-14',
-      amt: 1000.00,
-      created_at: '2024-01-14 15:45:00'
-    },
-    {
-      id: 3,
-      user_name: 'Jane Smith',
-      role: 'investor',
-      date: '2024-01-13',
-      amt: 750.00,
-      created_at: '2024-01-13 09:20:00'
+  const [payouts, setPayouts] = useState<Payout[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPayouts = async () => {
+      try {
+        const response = await apiService.getPayouts()
+        if (response.success && response.data) {
+          setPayouts(response.data.slice(0, 5)) // Show latest 5 payouts
+        }
+      } catch (error) {
+        console.error('Failed to fetch payouts:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchPayouts()
+  }, [])
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">

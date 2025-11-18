@@ -52,49 +52,12 @@ export default function InvestorsOverview() {
         if (response.ok) {
           setInvestors(data || [])
         } else {
-          // Fallback to mock data
-          setInvestors([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      invested_amount: 10000,
-      total_profit: 1500,
-      roi_min: 0.5,
-      roi_max: 2.0,
-      active: true,
-      created_at: '2024-01-15',
-      balance_usdt: 1000.00
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      invested_amount: 5000,
-      total_profit: 750,
-      roi_min: 0.3,
-      roi_max: 1.5,
-      active: true,
-      created_at: '2024-01-10',
-      balance_usdt: 500.00
-    },
-    {
-      id: 3,
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      invested_amount: 15000,
-      total_profit: 2250,
-      roi_min: 0.8,
-      roi_max: 2.5,
-      active: false,
-      created_at: '2024-01-05',
-      balance_usdt: 1500.00
-    }
-          ])
+          console.error('Failed to load investors:', response.status)
+          setInvestors([])
         }
       } catch (error) {
         console.error('Failed to fetch investors:', error)
-        // Keep fallback mock data
+        setInvestors([])
       } finally {
         setIsLoading(false)
       }

@@ -10,7 +10,7 @@ export default function AuthLoginPage() {
   const router = useRouter()
   const { login } = useAuthContext()
   const [formData, setFormData] = useState({
-    email: 'admin@example.com',
+    email: 'admin1@arbitrage.com',
     password: 'admin123',
     role: 'admin'
   })
@@ -21,11 +21,11 @@ export default function AuthLoginPage() {
   }
 
   const handleRoleChange = (newRole: string) => {
-    // Auto-fill credentials based on role selection
+    // Auto-fill credentials based on role selection (DigitalOcean PostgreSQL)
     const credentials = {
-      admin: { email: 'admin@example.com', password: 'admin123' },
-      investor: { email: 'john.smith@example.com', password: 'investor123' },
-      broker: { email: 'alpha@brokerage.com', password: 'broker123' }
+      admin: { email: 'admin1@arbitrage.com', password: 'admin123' },
+      investor: { email: 'mohammed@investor.com', password: 'investor123' },
+      broker: { email: 'ahmed@broker.com', password: 'broker123' }
     }
     
     setFormData({ 
@@ -202,53 +202,96 @@ export default function AuthLoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-blue-200 dark:border-gray-600">
-            <div className="flex items-center mb-3">
-              <Shield className="w-4 h-4 text-blue-600 mr-2" />
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Demo Credentials</h3>
+          {/* Live Database Accounts */}
+          <div className="mt-6 p-5 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-xl border-2 border-green-200 dark:border-gray-500 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <TrendingUp className="w-5 h-5 text-green-600 mr-2 animate-pulse" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Live Database Accounts</h3>
+              </div>
+              <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-semibold">Real Data</span>
             </div>
-            <div className="text-xs text-gray-700 dark:text-gray-300 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Admin:</span>
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('admin')}
-                  className="font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
-                >
-                  admin@example.com / admin123
-                </button>
+            
+            {/* Admin Accounts */}
+            <div className="mb-4">
+              <div className="flex items-center mb-2">
+                <Shield className="w-4 h-4 text-red-500 mr-2" />
+                <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">ADMIN (2 accounts)</h4>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Investor:</span>
+              <div className="space-y-1.5 pl-6">
                 <button
                   type="button"
-                  onClick={() => handleRoleChange('investor')}
-                  className="font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors cursor-pointer"
+                  onClick={() => setFormData({ email: 'admin1@arbitrage.com', password: 'admin123', role: 'admin' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all hover:scale-105 border border-red-200 dark:border-red-800"
                 >
-                  john.smith@example.com / investor123
+                  📧 admin1@arbitrage.com • 🔑 admin123 • 👤 Admin A
                 </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Broker:</span>
                 <button
                   type="button"
-                  onClick={() => handleRoleChange('broker')}
-                  className="font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors cursor-pointer"
+                  onClick={() => setFormData({ email: 'admin2@arbitrage.com', password: 'admin123', role: 'admin' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all hover:scale-105 border border-red-200 dark:border-red-800"
                 >
-                  alpha@brokerage.com / broker123
+                  📧 admin2@arbitrage.com • 🔑 admin123 • 👤 Admin B
                 </button>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-gray-600">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                💡 <strong>Tip:</strong> Click any credential button above to auto-fill the form
+
+            {/* Investor Accounts */}
+            <div className="mb-4">
+              <div className="flex items-center mb-2">
+                <User className="w-4 h-4 text-green-500 mr-2" />
+                <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">INVESTORS (2 accounts)</h4>
+              </div>
+              <div className="space-y-1.5 pl-6">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'mohammed@investor.com', password: 'investor123', role: 'investor' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all hover:scale-105 border border-green-200 dark:border-green-800"
+                >
+                  📧 mohammed@investor.com • 🔑 investor123 • 👤 Mohammed Al-Rashid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'lisa@investor.com', password: 'investor123', role: 'investor' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all hover:scale-105 border border-green-200 dark:border-green-800"
+                >
+                  📧 lisa@investor.com • 🔑 investor123 • 👤 Lisa Chen
+                </button>
+              </div>
+            </div>
+
+            {/* Broker Accounts */}
+            <div className="mb-3">
+              <div className="flex items-center mb-2">
+                <Building2 className="w-4 h-4 text-blue-500 mr-2" />
+                <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">BROKERS (2 accounts)</h4>
+              </div>
+              <div className="space-y-1.5 pl-6">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'ahmed@broker.com', password: 'broker123', role: 'broker' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all hover:scale-105 border border-blue-200 dark:border-blue-800"
+                >
+                  📧 ahmed@broker.com • 🔑 broker123 • 👤 Ahmed Hassan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'sarah@broker.com', password: 'broker123', role: 'broker' })}
+                  className="w-full text-left text-xs font-mono bg-white dark:bg-gray-800 px-3 py-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all hover:scale-105 border border-blue-200 dark:border-blue-800"
+                >
+                  📧 sarah@broker.com • 🔑 broker123 • 👤 Sarah Johnson
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t-2 border-green-200 dark:border-gray-600">
+              <p className="text-xs text-gray-700 dark:text-gray-300 flex items-center mb-2">
+                <span className="mr-2">💡</span>
+                <strong>Quick Login:</strong> Click any account above to auto-fill and login instantly!
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                <strong>Other Investors:</strong> sarah.johnson@example.com, michael.brown@example.com (all use password: investor123)
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                <strong>Other Brokers:</strong> beta@financial.com, gamma@investments.com (all use password: broker123)
+              <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center">
+                <span className="mr-2">🗄️</span>
+                <strong>Database:</strong> DigitalOcean PostgreSQL (Production)
               </p>
             </div>
           </div>

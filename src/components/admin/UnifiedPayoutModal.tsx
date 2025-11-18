@@ -63,11 +63,17 @@ export default function UnifiedPayoutModal({ isOpen, onClose, onSuccess }: Unifi
       } else if (role === 'broker') {
         response = await apiService.getBrokers()
       } else if (role === 'admin') {
-        // For admins, we'll create a static list since they're not in a separate table
-        setUsers([
-          { id: 1, name: 'Admin A', email: 'admin.a@example.com', role: 'admin' },
-          { id: 2, name: 'Admin B', email: 'admin.b@example.com', role: 'admin' }
-        ])
+        // Fetch all users and filter for admins from the real database
+        response = await apiService.getUsers()
+        if (response && response.success && response.data) {
+          // Filter to only show users with admin role
+          const adminUsers = response.data.filter((user: User) => user.role === 'admin')
+          setUsers(adminUsers)
+        } else if (response && Array.isArray(response)) {
+          // Handle direct array response
+          const adminUsers = response.filter((user: User) => user.role === 'admin')
+          setUsers(adminUsers)
+        }
         setLoadingUsers(false)
         return
       }

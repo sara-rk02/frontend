@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { FileText } from 'lucide-react'
 import CurrencyDisplay from '../common/CurrencyDisplay'
+import { apiService } from '@/services/api'
 
 interface Expense {
   id: number
@@ -12,30 +14,24 @@ interface Expense {
 }
 
 export default function ExpensesSection() {
-  // Mock data - replace with actual API data
-  const expenses: Expense[] = [
-    {
-      id: 1,
-      amt: 500.00,
-      description: 'Office rent for January',
-      date: '2024-01-15',
-      created_at: '2024-01-15 10:30:00'
-    },
-    {
-      id: 2,
-      amt: 200.00,
-      description: 'Software subscription fees',
-      date: '2024-01-14',
-      created_at: '2024-01-14 15:45:00'
-    },
-    {
-      id: 3,
-      amt: 150.00,
-      description: 'Marketing campaign expenses',
-      date: '2024-01-13',
-      created_at: '2024-01-13 09:20:00'
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const response = await apiService.getExpenses()
+        if (response.success && response.data) {
+          setExpenses(response.data.slice(0, 5)) // Show latest 5 expenses
+        }
+      } catch (error) {
+        console.error('Failed to fetch expenses:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchExpenses()
+  }, [])
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">

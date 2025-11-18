@@ -1,52 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Users, Eye, Edit, Trash2, Plus } from 'lucide-react'
 import CurrencyDisplay from '../common/CurrencyDisplay'
+import { apiService } from '@/services/api'
 
 export default function InvestorsTable() {
-  const [investors, setInvestors] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      investedAmount: 10000,
-      totalProfit: 2500,
-      profitUsdt: 1500,
-      joinDate: '2024-01-15',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      investedAmount: 15000,
-      totalProfit: 3750,
-      profitUsdt: 2250,
-      joinDate: '2024-01-10',
-      status: 'Active'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      investedAmount: 5000,
-      totalProfit: 1250,
-      profitUsdt: 750,
-      joinDate: '2024-01-20',
-      status: 'Active'
-    },
-    {
-      id: 4,
-      name: 'Sarah Wilson',
-      email: 'sarah@example.com',
-      investedAmount: 20000,
-      totalProfit: 5000,
-      profitUsdt: 3000,
-      joinDate: '2024-01-05',
-      status: 'Active'
+  const [investors, setInvestors] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchInvestors = async () => {
+      try {
+        const response = await apiService.getInvestors()
+        if (response.success && response.data) {
+          setInvestors(response.data.map((inv: any) => ({
+            id: inv.id,
+            name: inv.name,
+            email: inv.email,
+            investedAmount: inv.invested_amount || 0,
+            totalProfit: inv.total_profit || 0,
+            profitUsdt: inv.balance_usdt || 0,
+            joinDate: inv.created_at ? new Date(inv.created_at).toISOString().split('T')[0] : 'N/A',
+            status: inv.active ? 'Active' : 'Inactive'
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to fetch investors:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
+    fetchInvestors()
+  }, [])
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this investor?')) {

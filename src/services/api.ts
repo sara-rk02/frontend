@@ -279,6 +279,25 @@ class ApiService {
     }
   }
 
+  async getUsers(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/users/`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { success: true, data }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch users' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
   async getDashboardData(): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(getDashboardUrl('SUMMARY'), {
@@ -623,7 +642,7 @@ class ApiService {
     expense_date: string
   }): Promise<ApiResponse<any>> {
     try {
-      const response = await fetch(getExpensesUrl('CREATE'), {
+      const response = await fetch(`${this.baseUrl}/api/expenses/`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
@@ -642,6 +661,7 @@ class ApiService {
         return { success: false, error: data.message || 'Failed to create expense' }
       }
     } catch (error) {
+      console.error('Error creating expense:', error)
       return { success: false, error: 'Network error occurred' }
     }
   }
@@ -804,6 +824,46 @@ class ApiService {
       }
     } catch (error) {
       console.error('Error allocating extra profit:', error)
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
+  // Payouts methods
+  async getPayouts(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/payouts/`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { success: true, data: data.data || data }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch payouts' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
+  // Expenses methods
+  async getExpenses(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/expenses/`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { success: true, data: data.data || data }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch expenses' }
+      }
+    } catch (error) {
       return { success: false, error: 'Network error occurred' }
     }
   }

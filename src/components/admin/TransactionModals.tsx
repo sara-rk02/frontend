@@ -215,7 +215,9 @@ export default function TransactionModals({
   const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const formData = new FormData(e.currentTarget as HTMLFormElement)
+    // Capture form element BEFORE async operations
+    const form = e.currentTarget as HTMLFormElement
+    const formData = new FormData(form)
     const amount = formData.get('amount') as string
     const description = formData.get('description') as string
     const date = formData.get('date') as string
@@ -241,12 +243,13 @@ export default function TransactionModals({
       
       if (response.success) {
         showAlert('Expense recorded successfully!')
-        // Clear form
-        const form = e.currentTarget as HTMLFormElement
+        // Clear form (form is already captured before async)
         form.reset()
         onCloseExpenseModal()
-        // Refresh the page to show updated data
-        window.location.reload()
+        // Trigger transaction change callback to refresh parent
+        if (onTransactionChange) {
+          onTransactionChange()
+        }
       } else {
         alert(`Failed to create expense: ${response.error}`)
       }
