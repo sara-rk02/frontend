@@ -4,6 +4,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/auth/login',
+      BROKER_LOGIN: '/api/auth/broker-login',
       REGISTER: '/api/auth/register',
       LOGOUT: '/api/auth/logout'
     },
@@ -22,7 +23,8 @@ export const API_CONFIG = {
     },
     PAYOUTS: {
       LIST: '/api/payouts/',
-      CREATE: '/api/payouts/'
+      CREATE: '/api/payouts/',
+      UNIFIED: '/api/add_payout'
     },
     EXPENSES: {
       LIST: '/api/expenses/',
@@ -32,6 +34,18 @@ export const API_CONFIG = {
     },
     CHARTS: {
       DATA: '/api/charts/data'
+    },
+    BROKERS: {
+      LIST: '/api/brokers/',
+      GET: '/api/brokers/',
+      CREATE: '/api/brokers/',
+      UPDATE: '/api/brokers/',
+      DELETE: '/api/brokers/',
+      INVESTORS: '/api/brokers/',
+      COMMISSION_HISTORY: '/api/brokers/',
+      PAYOUT: '/api/brokers/',
+      PAYOUTS: '/api/brokers/',
+      DASHBOARD: '/api/dashboard/broker/'
     },
     HEALTH: '/api/health/'
   }
@@ -60,5 +74,15 @@ export const getChartUrl = (endpoint: keyof typeof API_CONFIG.ENDPOINTS.CHARTS):
 // Helper function to get expenses endpoints
 export const getExpensesUrl = (endpoint: keyof typeof API_CONFIG.ENDPOINTS.EXPENSES): string => {
   return getApiUrl(API_CONFIG.ENDPOINTS.EXPENSES[endpoint])
+}
+
+// Helper function to get broker endpoints
+export const getBrokerUrl = (endpoint: keyof typeof API_CONFIG.ENDPOINTS.BROKERS): string => {
+  return getApiUrl(API_CONFIG.ENDPOINTS.BROKERS[endpoint])
+}
+
+// Helper function to get payout endpoints
+export const getPayoutUrl = (endpoint: keyof typeof API_CONFIG.ENDPOINTS.PAYOUTS): string => {
+  return getApiUrl(API_CONFIG.ENDPOINTS.PAYOUTS[endpoint])
 }
 

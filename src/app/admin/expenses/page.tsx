@@ -16,6 +16,7 @@ import {
   FileText,
   X
 } from 'lucide-react'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay'
 
 interface Expense {
   id: number
@@ -344,7 +345,7 @@ export default function AdminExpensesPage() {
                         <div className="flex items-center">
                           <DollarSign className="h-4 w-4 text-green-600 mr-2" />
                           <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            ₫{expense.amount.toLocaleString()}
+                            <CurrencyDisplay amount={expense.amount} />
                           </span>
                         </div>
                       </td>

@@ -1,33 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js'
-import { Line, Bar } from 'react-chartjs-2'
+import { useState, useEffect } from 'react'
+import ChartWithFilters from '@/components/common/ChartWithFilters'
 import { apiService } from '@/services/api'
-import { Coins, BarChart3 } from 'lucide-react'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-)
 
 interface User {
   id: number
@@ -44,256 +19,216 @@ interface ChartsSectionProps {
 }
 
 export default function ChartsSection({ user }: ChartsSectionProps) {
-  const [chartData, setChartData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [balanceChartData, setBalanceChartData] = useState<any>(null)
+  const [roiProfitChartData, setRoiProfitChartData] = useState<any>(null)
+  const [balanceLoading, setBalanceLoading] = useState(false)
+  const [roiProfitLoading, setRoiProfitLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchChartData = async () => {
-      try {
-        const response = await apiService.getChartData()
+  const loadChartData = async (days: number) => {
+    try {
+      setBalanceLoading(true)
+      setRoiProfitLoading(true)
+
+      const response = await apiService.getInvestorChartData(user.id, days)
+      
+      if (response.success && response.data) {
+        const { balance_trend, roi_profit_comparison } = response.data
         
-        if (response.success && response.data) {
-          setChartData(response.data)
-        } else {
-          // Fallback to mock data if API fails
-          const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-          const roiValues = Array.from({ length: 12 }, () => Math.random() * 2 + 0.5)
-          const profitValues = Array.from({ length: 12 }, () => Math.random() * 1000 + 100)
-          setChartData({ roi_trend: roiValues.map((roi, i) => ({ date: labels[i], roi })), profit_trend: profitValues.map((profit, i) => ({ date: labels[i], profit })) })
+        // Prepare Balance Trend Chart
+        if (balance_trend && typeof balance_trend === 'object') {
+          const balanceDates = Object.keys(balance_trend).sort()
+          const balanceValues = balanceDates.map(date => balance_trend[date])
+          
+          const balanceData = {
+            labels: balanceDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [
+              {
+                label: 'Total Balance',
+                data: balanceValues,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+              },
+            ],
+          }
+          setBalanceChartData(balanceData)
         }
-      } catch (error) {
-        console.error('Failed to fetch chart data:', error)
-        // Fallback to mock data
-        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        const roiValues = Array.from({ length: 12 }, () => Math.random() * 2 + 0.5)
-        const profitValues = Array.from({ length: 12 }, () => Math.random() * 1000 + 100)
-        setChartData({ roi_trend: roiValues.map((roi, i) => ({ date: labels[i], roi })), profit_trend: profitValues.map((profit, i) => ({ date: labels[i], profit })) })
-      } finally {
-        setIsLoading(false)
-      }
-    }
 
-    fetchChartData()
-  }, [])
+        // Prepare ROI vs Profit Comparison Chart
+        if (roi_profit_comparison && typeof roi_profit_comparison === 'object') {
+          const roiProfitDates = Object.keys(roi_profit_comparison).sort()
+          const roiValues = roiProfitDates.map(date => roi_profit_comparison[date]?.roi || 0)
+          const profitValues = roiProfitDates.map(date => roi_profit_comparison[date]?.profit || 0)
+          
+          const roiProfitData = {
+            labels: roiProfitDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [
+              {
+                label: 'ROI (%)',
+                data: roiValues,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y',
+              },
+              {
+                label: 'Profit',
+                data: profitValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y1',
+              },
+            ],
+          }
+          setRoiProfitChartData(roiProfitData)
+        }
+      } else {
+        console.warn('Investor chart data response failed or missing data:', response)
+        // Set empty data to prevent undefined errors
+        setBalanceChartData(null)
+        setRoiProfitChartData(null)
+      }
+    } catch (error) {
+      console.error('Error loading investor chart data:', error)
+      // Set empty data to prevent undefined errors
+      setBalanceChartData(null)
+      setRoiProfitChartData(null)
+    } finally {
+      setBalanceLoading(false)
+      setRoiProfitLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Chart refresh functionality - matches original template
-    const refreshInterval = setInterval(() => {
-      // Simulate chart data refresh every 5 minutes (300000ms)
-      // In a real app, this would fetch new data from the API
-      console.log('Refreshing chart data...')
-    }, 300000) // 5 minutes
-
-    return () => clearInterval(refreshInterval)
-  }, [])
-
-  if (isLoading || !chartData) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Use real data from API
-  const labels = chartData.roi_trend?.map((item: any) => item.date) || []
-  const roiValues = chartData.roi_trend?.map((item: any) => item.roi) || []
-  const profitValues = chartData.profit_trend?.map((item: any) => item.profit) || []
-  
-  // Calculate cumulative balance from ROI history
-  const investedAmount = user.invested_amount || 1000
-  const cumulativeBalance: number[] = []
-  let runningBalance = investedAmount
-
-  roiValues.forEach((roi: number) => {
-    const dailyProfit = investedAmount * (roi / 22 / 100)
-    runningBalance += dailyProfit
-    cumulativeBalance.push(runningBalance)
-  })
-
-  const usdtBalanceData = {
-    labels,
-    datasets: [
-      {
-        label: 'USDT Balance (₫)',
-        data: cumulativeBalance,
-        borderColor: '#ffc107',
-        backgroundColor: 'rgba(255, 193, 7, 0.1)',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-      },
-    ],
-  }
-
-  const comparisonData = {
-    labels,
-        datasets: [
-          {
-            label: 'ROI (%)',
-            data: roiValues,
-            backgroundColor: 'rgba(0, 123, 255, 0.6)',
-            borderColor: '#007bff',
-            borderWidth: 1,
-            yAxisID: 'y',
-          },
-          {
-            label: 'Profit (₫)',
-            data: profitValues,
-            backgroundColor: 'rgba(40, 167, 69, 0.6)',
-            borderColor: '#28a745',
-            borderWidth: 1,
-            yAxisID: 'y1',
-          },
-        ],
-  }
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: {
-          color: '#6b7280',
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        min: investedAmount,
-        ticks: {
-          stepSize: 1000,
-          callback: function(value: any) {
-            return '₫' + value.toLocaleString()
-          },
-          color: '#6b7280',
-        },
-        title: {
-          display: true,
-          text: 'USDT Balance (₫)',
-          color: '#6b7280',
-        },
-        grid: {
-          color: '#e5e7eb',
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Time',
-          color: '#6b7280',
-        },
-        ticks: {
-          color: '#6b7280',
-        },
-        grid: {
-          color: '#e5e7eb',
-        },
-      },
-    },
-  }
-
-  const comparisonOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: {
-          color: '#6b7280',
-        },
-      },
-    },
-    scales: {
-      y: {
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-        title: {
-          display: true,
-          text: 'ROI (%)',
-          color: '#6b7280',
-        },
-        ticks: {
-          callback: function(value: any) {
-            return value.toFixed(2) + '%'
-          },
-          color: '#6b7280',
-        },
-        grid: {
-          color: '#e5e7eb',
-        },
-      },
-      y1: {
-        type: 'linear' as const,
-        display: true,
-        position: 'right' as const,
-        title: {
-          display: true,
-          text: 'Profit (₫)',
-          color: '#6b7280',
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
-        ticks: {
-          callback: function(value: any) {
-            return '₫' + value.toFixed(2)
-          },
-          color: '#6b7280',
-        },
-      },
-      x: {
-        ticks: {
-          color: '#6b7280',
-        },
-        grid: {
-          color: '#e5e7eb',
-        },
-      },
-    },
-  }
+    loadChartData(30) // Load initial data for 30 days
+  }, [user.id])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-      {/* USDT Balance Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center mb-4">
-          <Coins className="h-5 w-5 text-yellow-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            USDT Balance Trend
-          </h3>
-        </div>
-        <div className="h-64">
-          <Line data={usdtBalanceData} options={chartOptions} />
-        </div>
-      </div>
+    <div className="space-y-8 mb-8">
+      {/* Balance Trend Chart */}
+      <ChartWithFilters
+        title="Balance Trend Analysis"
+        chartType="line"
+        data={balanceChartData}
+        loading={balanceLoading}
+        onRefresh={loadChartData}
+        options={{
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Balance',
+                color: '#6b7280',
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toLocaleString()
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#6b7280',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`
+                },
+              },
+            },
+          },
+        }}
+      />
 
       {/* ROI vs Profit Comparison Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center mb-4">
-          <BarChart3 className="h-5 w-5 text-blue-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            ROI vs Profit Comparison
-          </h3>
-        </div>
-        <div className="h-64">
-          <Bar data={comparisonData} options={comparisonOptions} />
-        </div>
-      </div>
+      <ChartWithFilters
+        title="ROI vs Profit Comparison"
+        chartType="line"
+        data={roiProfitChartData}
+        loading={roiProfitLoading}
+        onRefresh={loadChartData}
+        options={{
+          scales: {
+            y: {
+              type: 'linear' as const,
+              display: true,
+              position: 'left' as const,
+              title: {
+                display: true,
+                text: 'ROI (%)',
+                color: '#6b7280',
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toFixed(2) + '%'
+                },
+                color: '#6b7280',
+              },
+              grid: {
+                color: '#e5e7eb',
+              },
+            },
+            y1: {
+              type: 'linear' as const,
+              display: true,
+              position: 'right' as const,
+              title: {
+                display: true,
+                text: 'Profit',
+                color: '#6b7280',
+              },
+              grid: {
+                drawOnChartArea: false,
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toLocaleString()
+                },
+                color: '#6b7280',
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#6b7280',
+              },
+              ticks: {
+                color: '#6b7280',
+              },
+              grid: {
+                color: '#e5e7eb',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  if (context.dataset.label === 'ROI (%)') {
+                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`
+                  } else {
+                    return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`
+                  }
+                },
+              },
+            },
+          },
+        }}
+      />
     </div>
   )
 }

@@ -19,6 +19,7 @@ import {
   TrendingUp,
   X
 } from 'lucide-react'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay'
 import { getApiUrl } from '@/config/api'
 
 interface Investor {
@@ -419,7 +420,7 @@ export default function InvestorsPage() {
                           ${(investor.invested_amount || 0).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          ₫{(investor.invested_amount_aed || 0).toLocaleString()}
+                          <CurrencyDisplay amount={investor.invested_amount_aed || 0} />
                         </div>
                       </div>
                     </td>
@@ -427,10 +428,10 @@ export default function InvestorsPage() {
                       <div className="text-sm text-gray-900 dark:text-white">
                         <div className="flex items-center">
                           <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                          ₫{(investor.total_profit || 0).toLocaleString()}
+                          <CurrencyDisplay amount={investor.total_profit || 0} />
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Balance: ₫{(investor.balance_usdt || 0).toLocaleString()}
+                          Balance: <CurrencyDisplay amount={investor.balance_usdt || 0} />
                         </div>
                       </div>
                     </td>

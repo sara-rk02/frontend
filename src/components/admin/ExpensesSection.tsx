@@ -1,6 +1,7 @@
 'use client'
 
 import { FileText } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 interface Expense {
   id: number
@@ -60,7 +61,9 @@ export default function ExpensesSection() {
                 {expenses.map((expense) => (
                   <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">₫{expense.amt.toFixed(2)}</div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <CurrencyDisplay amount={expense.amt} />
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500 dark:text-gray-400">{expense.description}</div>

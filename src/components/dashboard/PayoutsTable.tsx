@@ -1,6 +1,7 @@
 'use client'
 
 import { DollarSign } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 interface Payout {
   id: number
@@ -83,7 +84,7 @@ export default function PayoutsTable({ payouts }: PayoutsTableProps) {
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-bold text-red-600 dark:text-red-400">
-                        -₫{payout.amt.toFixed(2)}
+                        -<CurrencyDisplay amount={payout.amt} />
                       </span>
                     </td>
                     <td className="py-3 px-4">

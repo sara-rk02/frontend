@@ -29,6 +29,9 @@ export default function DashboardPage() {
         router.push('/')
       } else if (user && ['admin', 'SUPER_ADMIN'].includes(user.role)) {
         router.push('/admin/dashboard')
+      } else if (user && user.role === 'broker') {
+        // Prevent brokers from accessing investor dashboard
+        router.push('/broker/dashboard')
       }
     }
   }, [isAuthenticated, user, isLoading, router])
@@ -64,38 +67,6 @@ export default function DashboardPage() {
                 <p className="text-gray-600 dark:text-gray-400">
                   Welcome back, <strong>{user.name}</strong>! Here&apos;s your investment overview.
                 </p>
-              </div>
-              <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Theme:</span>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="dashboardDarkModeToggle"
-                    className="sr-only"
-                    onChange={(e) => {
-                      const isDark = e.target.checked
-                      if (isDark) {
-                        document.documentElement.classList.add('dark')
-                        localStorage.setItem('theme', 'dark')
-                      } else {
-                        document.documentElement.classList.remove('dark')
-                        localStorage.setItem('theme', 'light')
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="dashboardDarkModeToggle"
-                    className="flex items-center cursor-pointer"
-                  >
-                    <div className="relative">
-                      <div className="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full shadow-inner"></div>
-                      <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200 ease-in-out"></div>
-                    </div>
-                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                      <i className="fas fa-moon"></i> Dark Mode
-                    </span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>

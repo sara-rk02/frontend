@@ -27,13 +27,25 @@ export function useAuth() {
   const router = useRouter()
 
   const checkAuth = useCallback(() => {
+    // Check if we're in the browser environment
+    if (typeof window === 'undefined') {
+      setAuthState({
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+      })
+      return
+    }
+
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
+    const brokerToken = localStorage.getItem('broker_token')
+    const brokerUserData = localStorage.getItem('broker_user')
 
+    // Check regular user token first
     if (token && userData) {
       try {
         const user = JSON.parse(userData)
-        // Check if token is still valid (basic check - in production, you'd validate with backend)
         const tokenTimestamp = localStorage.getItem('token_timestamp')
         const now = Date.now()
         const tokenAge = tokenTimestamp ? now - parseInt(tokenTimestamp) : 0
@@ -45,44 +57,82 @@ export function useAuth() {
             isLoading: false,
             isAuthenticated: true,
           })
+          return
         } else {
           // Token expired, clear storage
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           localStorage.removeItem('token_timestamp')
-          setAuthState({
-            user: null,
-            isLoading: false,
-            isAuthenticated: false,
-          })
         }
       } catch (error) {
         console.error('Error parsing user data:', error)
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         localStorage.removeItem('token_timestamp')
-        setAuthState({
-          user: null,
-          isLoading: false,
-          isAuthenticated: false,
-        })
       }
-    } else {
-      setAuthState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-      })
     }
+
+    // Check broker token if no regular user token
+    if (brokerToken && brokerUserData) {
+      try {
+        const user = JSON.parse(brokerUserData)
+        const tokenTimestamp = localStorage.getItem('broker_timestamp')
+        const now = Date.now()
+        const tokenAge = tokenTimestamp ? now - parseInt(tokenTimestamp) : 0
+        const maxAge = 24 * 60 * 60 * 1000 // 24 hours
+
+        if (tokenAge < maxAge) {
+          setAuthState({
+            user,
+            isLoading: false,
+            isAuthenticated: true,
+          })
+          return
+        } else {
+          // Token expired, clear storage
+          localStorage.removeItem('broker_token')
+          localStorage.removeItem('broker_user')
+          localStorage.removeItem('broker_timestamp')
+        }
+      } catch (error) {
+        console.error('Error parsing broker user data:', error)
+        localStorage.removeItem('broker_token')
+        localStorage.removeItem('broker_user')
+        localStorage.removeItem('broker_timestamp')
+      }
+    }
+
+    // No valid token found
+    setAuthState({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+    })
   }, [])
 
   const login = useCallback(async (email: string, password: string, role: string) => {
-    const response = await apiService.login({ email, password, role })
+    let response
+    
+    // Use broker login for broker role, regular login for others
+    if (role === 'broker') {
+      response = await apiService.brokerLogin({ email, password, role })
+    } else {
+      response = await apiService.login({ email, password, role })
+    }
     
     if (response.success && response.data) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-      localStorage.setItem('token_timestamp', Date.now().toString())
+      // Store tokens based on role (only in browser)
+      if (typeof window !== 'undefined') {
+        if (role === 'broker') {
+          localStorage.setItem('broker_token', response.data.token)
+          localStorage.setItem('broker_user', JSON.stringify(response.data.user))
+          localStorage.setItem('broker_timestamp', Date.now().toString())
+        } else {
+          localStorage.setItem('token', response.data.token)
+          localStorage.setItem('user', JSON.stringify(response.data.user))
+          localStorage.setItem('token_timestamp', Date.now().toString())
+        }
+      }
       
       setAuthState({
         user: response.data.user,
@@ -90,11 +140,16 @@ export function useAuth() {
         isAuthenticated: true,
       })
 
-      // Redirect based on role
+      // Redirect based on role - ensure strict separation
       if (response.data.user.role === 'admin') {
         router.push('/admin/dashboard')
-      } else {
+      } else if (response.data.user.role === 'broker') {
+        router.push('/broker/dashboard')
+      } else if (response.data.user.role === 'investor') {
         router.push('/dashboard')
+      } else {
+        // Unknown role, redirect to login
+        router.push('/')
       }
 
       return { success: true }
@@ -105,9 +160,14 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     await apiService.logout()
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('token_timestamp')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('token_timestamp')
+      localStorage.removeItem('broker_token')
+      localStorage.removeItem('broker_user')
+      localStorage.removeItem('broker_timestamp')
+    }
     setAuthState({
       user: null,
       isLoading: false,
@@ -123,11 +183,28 @@ export function useAuth() {
     }
 
     if (requiredRole && authState.user?.role !== requiredRole) {
+      // Redirect to appropriate dashboard based on user's actual role
       if (authState.user?.role === 'admin') {
         router.push('/admin/dashboard')
-      } else {
+      } else if (authState.user?.role === 'broker') {
+        router.push('/broker/dashboard')
+      } else if (authState.user?.role === 'investor') {
         router.push('/dashboard')
+      } else {
+        router.push('/')
       }
+      return false
+    }
+
+    // Additional security: prevent brokers from accessing investor routes
+    if (authState.user?.role === 'broker' && requiredRole === 'investor') {
+      router.push('/broker/dashboard')
+      return false
+    }
+
+    // Additional security: prevent investors from accessing broker routes
+    if (authState.user?.role === 'investor' && requiredRole === 'broker') {
+      router.push('/dashboard')
       return false
     }
 

@@ -15,13 +15,31 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useAuth()
+  try {
+    const auth = useAuth()
 
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  )
+    return (
+      <AuthContext.Provider value={auth}>
+        {children}
+      </AuthContext.Provider>
+    )
+  } catch (error) {
+    console.error('Error initializing AuthProvider:', error)
+    // Return a default context value to prevent crashes
+    const defaultAuth: AuthContextType = {
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      login: async () => ({ success: false, error: 'Auth initialization failed' }),
+      logout: async () => {},
+      requireAuth: () => false,
+    }
+    return (
+      <AuthContext.Provider value={defaultAuth}>
+        {children}
+      </AuthContext.Provider>
+    )
+  }
 }
 
 export function useAuthContext() {

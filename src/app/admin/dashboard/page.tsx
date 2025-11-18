@@ -6,11 +6,16 @@ import Navigation from '@/components/layout/Navigation'
 import AdminHeader from '@/components/admin/AdminHeader'
 import FinancialSummaryCards from '@/components/admin/FinancialSummaryCards'
 import AdminOverviewSection from '@/components/admin/AdminOverviewSection'
-import TransactionManagement from '@/components/admin/TransactionManagement'
+import TransactionOverview from '@/components/admin/TransactionOverview'
 import InvestorsOverview from '@/components/admin/InvestorsOverview'
 import AdminCharts from '@/components/admin/AdminCharts'
 import PayoutsSection from '@/components/admin/PayoutsSection'
+import UnifiedPayoutsTable from '@/components/admin/UnifiedPayoutsTable'
 import ExpensesSection from '@/components/admin/ExpensesSection'
+import BrokerDashboard from '@/components/admin/BrokerDashboard'
+import BrokerModal from '@/components/admin/BrokerModal'
+import BrokerPayoutSystem from '@/components/admin/BrokerPayoutSystem'
+import UnifiedPayoutModal from '@/components/admin/UnifiedPayoutModal'
 import TransactionModals from '@/components/admin/TransactionModals'
 import { useAuthContext } from '@/contexts/AuthContext'
 
@@ -28,14 +33,29 @@ export default function AdminDashboardPage() {
   const [showPayoutModal, setShowPayoutModal] = useState(false)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showCustomerModal, setShowCustomerModal] = useState(false)
+  const [showBrokerModal, setShowBrokerModal] = useState(false)
+  const [showUnifiedPayoutModal, setShowUnifiedPayoutModal] = useState(false)
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState(0)
   const router = useRouter()
+
+  // Handler to refresh dashboard when transactions change
+  const handleTransactionChange = () => {
+    setDashboardRefreshKey(prev => prev + 1)
+  }
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/')
       } else if (user && !['admin', 'SUPER_ADMIN'].includes(user.role)) {
-        router.push('/dashboard')
+        // Redirect non-admins to their appropriate dashboard
+        if (user.role === 'broker') {
+          router.push('/broker/dashboard')
+        } else if (user.role === 'investor') {
+          router.push('/dashboard')
+        } else {
+          router.push('/')
+        }
       }
     }
   }, [isAuthenticated, user, isLoading, router])
@@ -63,21 +83,22 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Admin Header */}
           <AdminHeader 
-            onShowPayoutModal={() => setShowPayoutModal(true)}
+            onShowPayoutModal={() => setShowUnifiedPayoutModal(true)}
             onShowExpenseModal={() => setShowExpenseModal(true)}
-            onShowCustomerModal={() => setShowCustomerModal(true)}
           />
 
           {/* Financial Summary Cards */}
-          <FinancialSummaryCards />
+          <FinancialSummaryCards key={`financial-${dashboardRefreshKey}`} />
 
           {/* Admin Overview Section */}
-          <AdminOverviewSection />
+          <AdminOverviewSection key={`admin-overview-${dashboardRefreshKey}`} />
 
-          {/* Transaction Management */}
-          <TransactionManagement 
+          {/* Transaction Overview */}
+          <TransactionOverview 
+            key={dashboardRefreshKey}
             onShowInrModal={() => setShowInrModal(true)}
             onShowUaeModal={() => setShowUaeModal(true)}
+            onTransactionChange={handleTransactionChange}
           />
 
           {/* Investors Overview */}
@@ -86,17 +107,20 @@ export default function AdminDashboardPage() {
           {/* Admin Charts */}
           <AdminCharts />
 
-          {/* Payouts Section */}
-          <PayoutsSection />
+          {/* Unified Payouts Table */}
+          <UnifiedPayoutsTable />
 
           {/* Expenses Section */}
           <ExpensesSection />
 
+          {/* Broker Dashboard */}
+          <BrokerDashboard onAddBroker={() => setShowBrokerModal(true)} />
+
           {/* Transaction Modals */}
-          <TransactionModals 
+          <TransactionModals
             showInrModal={showInrModal}
             showUaeModal={showUaeModal}
-            showPayoutModal={showPayoutModal}
+            showPayoutModal={false} // Disabled old payout modal
             showExpenseModal={showExpenseModal}
             showCustomerModal={showCustomerModal}
             onCloseInrModal={() => setShowInrModal(false)}
@@ -104,6 +128,31 @@ export default function AdminDashboardPage() {
             onClosePayoutModal={() => setShowPayoutModal(false)}
             onCloseExpenseModal={() => setShowExpenseModal(false)}
             onCloseCustomerModal={() => setShowCustomerModal(false)}
+            onTransactionChange={handleTransactionChange}
+          />
+
+          {/* Unified Payout Modal */}
+          <UnifiedPayoutModal
+            isOpen={showUnifiedPayoutModal}
+            onClose={() => setShowUnifiedPayoutModal(false)}
+            onSuccess={() => {
+              // Refresh data after successful payout
+              setTimeout(() => {
+                window.location.reload()
+              }, 1000) // Small delay to ensure the alert is seen
+            }}
+          />
+
+          {/* Broker Modal */}
+          <BrokerModal 
+            isOpen={showBrokerModal}
+            onClose={() => setShowBrokerModal(false)}
+            onSuccess={() => {
+              // Refresh broker data by reloading the page or calling a refresh function
+              setTimeout(() => {
+                window.location.reload()
+              }, 1000) // Small delay to ensure the alert is seen
+            }}
           />
         </div>
       </main>

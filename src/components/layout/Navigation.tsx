@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { 
   User, 
   ChevronDown, 
@@ -15,8 +16,10 @@ import {
   DollarSign,
   Receipt,
   Menu,
-  X
+  X,
+  Building2
 } from 'lucide-react'
+import AddInvestorButton from '@/components/common/AddInvestorButton'
 
 interface User {
   id: number
@@ -78,15 +81,22 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
           <div className="flex items-center">
             <button 
               onClick={() => router.push('/')}
-              className="flex items-center space-x-3"
+              className="flex items-center space-x-3 hover:scale-105 transition-transform duration-200"
             >
               {/* Logo Image */}
-              <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-white" />
+              <div className="relative h-16 w-16 rounded-lg overflow-hidden">
+                <Image
+                  src="/images/logo.png"
+                  alt="Arbitrage Yield Logo"
+                  width={64}
+                  height={64}
+                  className="object-contain hover:scale-110 transition-transform duration-200"
+                  priority
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Investment Dashboard</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">USDT Portal</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Arbitrage Yield</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Investment Portal</p>
               </div>
             </button>
           </div>
@@ -141,13 +151,10 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                       <Receipt className="h-4 w-4" />
                       <span>Expenses</span>
                     </button>
-                    <button
-                      onClick={() => router.push('/admin/register')}
-                      className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      <span>Add Investor</span>
-                    </button>
+                    <AddInvestorButton 
+                      variant="secondary"
+                      size="sm"
+                    />
                   </>
                 ) : (
                   <button
@@ -259,16 +266,11 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                     <Receipt className="h-5 w-5" />
                     <span>Expenses</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      router.push('/admin/register')
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  >
-                    <UserPlus className="h-5 w-5" />
-                    <span>Add Investor</span>
-                  </button>
+                  <AddInvestorButton 
+                    variant="secondary"
+                    size="lg"
+                    className="w-full text-left px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  />
                 </>
               ) : (
                 <button

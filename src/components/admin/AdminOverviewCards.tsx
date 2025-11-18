@@ -1,6 +1,7 @@
 'use client'
 
 import { Users, DollarSign, TrendingUp, UserPlus } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 export default function AdminOverviewCards() {
   // Mock data - replace with actual API data
@@ -34,7 +35,7 @@ export default function AdminOverviewCards() {
     },
     {
       title: 'Total Profits',
-      value: `₫${stats.totalProfits.toLocaleString()}`,
+      value: <CurrencyDisplay amount={stats.totalProfits} />,
       subtitle: 'Generated for investors',
       icon: TrendingUp,
       color: 'text-purple-600',

@@ -186,7 +186,8 @@ export default function RegisterPage() {
                 
                 <div>
                   <label htmlFor="aed_conversion_rate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    AED Conversion Rate
+                    <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mr-1" />
+                    Conversion Rate
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -206,7 +207,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Default: 3.667 (1 USD = 3.667 AED)
+                    Default: 3.667 (1 USD = 3.667 <img src="/images/Dhiram.png" alt="AED" className="inline w-3 h-3 align-text-bottom mx-1" />)
                   </p>
                 </div>
                 

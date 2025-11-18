@@ -1,120 +1,251 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
-import { Line } from 'react-chartjs-2'
-import { TrendingUp, BarChart3 } from 'lucide-react'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-)
+import { useState, useEffect } from 'react'
+import ChartWithFilters from '@/components/common/ChartWithFilters'
+import { apiService } from '@/services/api'
 
 export default function AdminCharts() {
-  // Mock data - replace with actual API data
-  const chartData = {
-    labels: ['Jan 1', 'Jan 2', 'Jan 3', 'Jan 4', 'Jan 5', 'Jan 6', 'Jan 7'],
-    balanceUsdtValues: [1000, 1050, 1100, 1080, 1150, 1200, 1250],
-    profitUsdtValues: [50, 100, 80, 70, 50, 50, 50]
-  }
+  const [balanceChartData, setBalanceChartData] = useState<any>(null)
+  const [profitChartData, setProfitChartData] = useState<any>(null)
+  const [roiChartData, setRoiChartData] = useState<any>(null)
+  const [balanceLoading, setBalanceLoading] = useState(false)
+  const [profitLoading, setProfitLoading] = useState(false)
+  const [roiLoading, setRoiLoading] = useState(false)
 
-  const usdtBalanceData = {
-    labels: chartData.labels,
-    datasets: [
-      {
-        label: 'Total USDT Balance',
-        data: chartData.balanceUsdtValues,
-        borderColor: '#28a745',
-        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-        tension: 0.1,
-        fill: true,
-      },
-    ],
-  }
+  const loadChartData = async (days: number) => {
+    try {
+      setBalanceLoading(true)
+      setProfitLoading(true)
+      setRoiLoading(true)
 
-  const profitData = {
-    labels: chartData.labels,
-    datasets: [
-      {
-        label: 'Daily Profit (USDT)',
-        data: chartData.profitUsdtValues,
-        borderColor: '#007bff',
-        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-        tension: 0.1,
-        fill: true,
-      },
-    ],
-  }
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            if (context.dataset.label === 'Total USDT Balance') {
-              return 'Balance: ₫' + context.parsed.y.toLocaleString()
-            } else {
-              return 'Profit: ₫' + context.parsed.y.toFixed(4)
-            }
+      const response = await apiService.getAdminChartData(days)
+      
+      if (response.success && response.data) {
+        const { balance_trend, profit_trend, roi_comparison } = response.data
+        
+        // Prepare Balance Trend Chart
+        if (balance_trend && typeof balance_trend === 'object') {
+          const balanceDates = Object.keys(balance_trend).sort()
+          const balanceValues = balanceDates.map(date => balance_trend[date])
+          
+          const balanceData = {
+            labels: balanceDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [
+              {
+                label: 'Total Balance (AED)',
+                data: balanceValues,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+              },
+            ],
           }
+          setBalanceChartData(balanceData)
         }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        ticks: {
-          callback: function(value: any) {
-            return '₫' + value.toLocaleString()
+
+        // Prepare Profit Trend Chart
+        if (profit_trend && typeof profit_trend === 'object') {
+          const profitDates = Object.keys(profit_trend).sort()
+          const profitValues = profitDates.map(date => profit_trend[date])
+          
+          const profitData = {
+            labels: profitDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [
+              {
+                label: 'Daily Profit (AED)',
+                data: profitValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+              },
+            ],
           }
+          setProfitChartData(profitData)
         }
+
+        // Prepare ROI Comparison Chart
+        if (roi_comparison && typeof roi_comparison === 'object' && roi_comparison.uae && roi_comparison.inr) {
+          const roiDates = Object.keys(roi_comparison.uae).sort()
+          const uaeRoiValues = roiDates.map(date => roi_comparison.uae[date] || 0)
+          const inrRoiValues = roiDates.map(date => roi_comparison.inr[date] || 0)
+          
+          const roiData = {
+            labels: roiDates.map(date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [
+              {
+                label: 'UAE ROI (%)',
+                data: uaeRoiValues,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+              },
+              {
+                label: 'INR ROI (%)',
+                data: inrRoiValues,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+              },
+            ],
+          }
+          setRoiChartData(roiData)
+        }
+      } else {
+        console.warn('Admin chart data response failed or missing data:', response)
+        // Set empty data to prevent undefined errors
+        setBalanceChartData(null)
+        setProfitChartData(null)
+        setRoiChartData(null)
       }
+    } catch (error) {
+      console.error('Error loading admin chart data:', error)
+      // Set empty data to prevent undefined errors
+      setBalanceChartData(null)
+      setProfitChartData(null)
+      setRoiChartData(null)
+    } finally {
+      setBalanceLoading(false)
+      setProfitLoading(false)
+      setRoiLoading(false)
     }
   }
 
+  useEffect(() => {
+    loadChartData(30) // Load initial data for 30 days
+  }, [])
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      {/* USDT Balance Trend Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-            <TrendingUp className="text-blue-500 mr-2 w-5 h-5" />
-            USDT Balance Trend
-          </h3>
-        </div>
-        <div className="h-64">
-          <Line data={usdtBalanceData} options={chartOptions} />
-        </div>
-      </div>
-      
+    <div className="space-y-8 mb-8">
+      {/* Balance Trend Chart */}
+      <ChartWithFilters
+        title="Balance Trend Analysis"
+        chartType="line"
+        data={balanceChartData}
+        loading={balanceLoading}
+        onRefresh={loadChartData}
+        options={{
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Balance (AED)',
+                color: '#6b7280',
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toLocaleString() + ' AED'
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#6b7280',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  return `${context.dataset.label}: ${context.parsed.y.toLocaleString()} AED`
+                },
+              },
+            },
+          },
+        }}
+      />
+
       {/* Profit Trend Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-            <BarChart3 className="text-green-500 mr-2 w-5 h-5" />
-            Profit Trend (USDT)
-          </h3>
-        </div>
-        <div className="h-64">
-          <Line data={profitData} options={chartOptions} />
-        </div>
-      </div>
+      <ChartWithFilters
+        title="Profit Trend Analysis"
+        chartType="line"
+        data={profitChartData}
+        loading={profitLoading}
+        onRefresh={loadChartData}
+        options={{
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Profit (AED)',
+                color: '#6b7280',
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toLocaleString() + ' AED'
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#6b7280',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  return `${context.dataset.label}: ${context.parsed.y.toLocaleString()} AED`
+                },
+              },
+            },
+          },
+        }}
+      />
+
+      {/* ROI Comparison Chart */}
+      <ChartWithFilters
+        title="ROI Comparison: UAE vs INR"
+        chartType="line"
+        data={roiChartData}
+        loading={roiLoading}
+        onRefresh={loadChartData}
+        options={{
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'ROI (%)',
+                color: '#6b7280',
+              },
+              ticks: {
+                callback: function(value: any) {
+                  return value.toFixed(2) + '%'
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#6b7280',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`
+                },
+              },
+            },
+          },
+        }}
+      />
     </div>
   )
 }

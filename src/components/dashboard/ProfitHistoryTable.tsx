@@ -1,6 +1,7 @@
 'use client'
 
 import { History } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 interface ProfitRecord {
   id: number
@@ -88,12 +89,12 @@ export default function ProfitHistoryTable({ profitHistory }: ProfitHistoryTable
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-bold text-green-600 dark:text-green-400">
-                        ₫{record.daily_profit_usdt.toFixed(2)}
+                        <CurrencyDisplay amount={record.daily_profit_usdt} />
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <span className="text-blue-600 dark:text-blue-400">
-                        ₫{record.balance_usdt_snapshot.toFixed(2)}
+                        <CurrencyDisplay amount={record.balance_usdt_snapshot} />
                       </span>
                     </td>
                   </tr>

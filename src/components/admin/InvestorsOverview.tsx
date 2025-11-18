@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Users, Edit, Plus, Ban, Check, Trash2 } from 'lucide-react'
-import { getDashboardUrl } from '@/config/api'
+import { getDashboardUrl, getApiUrl } from '@/config/api'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay'
 
 interface Investor {
   id: number
@@ -15,6 +16,13 @@ interface Investor {
   active: boolean
   created_at: string
   balance_usdt: number
+  broker?: {
+    id: number
+    name: string
+    email: string
+    broker_min_roi: number
+    broker_max_roi: number
+  }
 }
 
 export default function InvestorsOverview() {
@@ -26,7 +34,13 @@ export default function InvestorsOverview() {
     const fetchInvestors = async () => {
       try {
         const token = localStorage.getItem('token')
-        const response = await fetch(getDashboardUrl('INVESTORS'), {
+        if (!token) {
+          console.log('No authentication token found, skipping API call')
+          setIsLoading(false)
+          return
+        }
+        
+        const response = await fetch(getApiUrl('/api/investors/'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -36,7 +50,7 @@ export default function InvestorsOverview() {
         const data = await response.json()
         
         if (response.ok) {
-          setInvestors(data.data || [])
+          setInvestors(data || [])
         } else {
           // Fallback to mock data
           setInvestors([
@@ -150,6 +164,7 @@ export default function InvestorsOverview() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Profit</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Balance</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ROI Range</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Broker</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
@@ -166,18 +181,36 @@ export default function InvestorsOverview() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">${investor.invested_amount.toFixed(2)}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">₫{(investor.invested_amount * 3.667).toFixed(2)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <CurrencyDisplay amount={investor.invested_amount * 3.667} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-green-600 dark:text-green-400">₫{investor.total_profit.toFixed(2)}</div>
+                        <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                          <CurrencyDisplay amount={investor.total_profit} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">₫{getTotalBalance(investor.invested_amount * 3.667, investor.total_profit).toFixed(2)}</div>
+                        <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                          <CurrencyDisplay amount={getTotalBalance(investor.invested_amount * 3.667, investor.total_profit)} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
                           {investor.roi_min.toFixed(2)}% - {investor.roi_max.toFixed(2)}%
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {investor.broker ? (
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-900 dark:text-white">{investor.broker.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              ROI: {investor.broker.broker_min_roi.toFixed(2)}% - {investor.broker.broker_max_roi.toFixed(2)}%
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400 dark:text-gray-500">No Broker</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {investor.active ? (
@@ -245,13 +278,13 @@ export default function InvestorsOverview() {
                         ${investor.invested_amount.toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ₫{investor.balance_usdt.toFixed(2)}
+                        <CurrencyDisplay amount={investor.balance_usdt} />
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Profit</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        ₫{investor.total_profit.toFixed(2)}
+                        <CurrencyDisplay amount={investor.total_profit} />
                       </p>
                     </div>
                     <div>
@@ -261,9 +294,19 @@ export default function InvestorsOverview() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Created</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Broker</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {new Date(investor.created_at).toLocaleDateString()}
+                        {investor.broker ? (
+                          <>
+                            {investor.broker.name}
+                            <br />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              ROI: {investor.broker.broker_min_roi.toFixed(2)}% - {investor.broker.broker_max_roi.toFixed(2)}%
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500">No Broker</span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -299,7 +342,7 @@ export default function InvestorsOverview() {
                 </div>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                    ₫{totalInvestedAed.toFixed(2)}
+                    <CurrencyDisplay amount={totalInvestedAed} />
                   </h3>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Total Invested Amount (AED)
@@ -316,7 +359,7 @@ export default function InvestorsOverview() {
                 </div>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
-                    ₫{totalProfit.toFixed(2)}
+                    <CurrencyDisplay amount={totalProfit} />
                   </h3>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Total Profit
@@ -333,7 +376,7 @@ export default function InvestorsOverview() {
                 </div>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-2">
-                    ₫{totalBalance.toFixed(2)}
+                    <CurrencyDisplay amount={totalBalance} />
                   </h3>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Total Balance

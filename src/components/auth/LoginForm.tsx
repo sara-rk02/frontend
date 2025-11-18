@@ -10,7 +10,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ onLogin }: LoginFormProps) {
   const [formData, setFormData] = useState({
-    email: 'admin.a@usdtportal.com',
+    email: 'admin@example.com',
     password: 'admin123',
     role: 'admin'
   })
@@ -187,9 +187,13 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
       <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Demo Credentials:</h3>
         <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-          <p><strong>Admin:</strong> admin.a@usdtportal.com / admin123</p>
-          <p><strong>Investor:</strong> john.doe@example.com / investor123</p>
-          <p><strong>Other Investors:</strong> jane.smith@example.com, sarah.johnson@example.com, etc.</p>
+          <p><strong>Admin:</strong> admin@example.com / admin123</p>
+          <p><strong>Investors:</strong></p>
+          <ul className="ml-4 space-y-0.5">
+            <li>• john.smith@example.com / investor123</li>
+            <li>• sarah.johnson@example.com / investor123</li>
+            <li>• michael.brown@example.com / investor123</li>
+          </ul>
         </div>
       </div>
     </div>

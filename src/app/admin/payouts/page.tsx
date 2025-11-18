@@ -17,6 +17,7 @@ import {
   ChevronDown,
   X
 } from 'lucide-react'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay'
 import { getApiUrl } from '@/config/api'
 import SearchableSelect from '@/components/ui/SearchableSelect'
 
@@ -198,6 +199,11 @@ export default function PayoutsPage() {
       console.error('Error adding payout:', error)
       alert('Network error. Please try again.')
     }
+  }
+
+  const handleEditPayoutClick = (payout: Payout) => {
+    setEditingPayout(payout)
+    setShowEditModal(true)
   }
 
   const handleEditPayout = async (e: React.FormEvent) => {
@@ -412,7 +418,7 @@ export default function PayoutsPage() {
                       <div className="flex items-center">
                         <DollarSign className="h-4 w-4 text-green-500 mr-1" />
                         <span className="text-sm text-gray-900 dark:text-white">
-                          ₫{payout.amount.toLocaleString()}
+                          <CurrencyDisplay amount={payout.amount} />
                         </span>
                       </div>
                     </td>
@@ -488,7 +494,7 @@ export default function PayoutsPage() {
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      ₫{payout.amount.toLocaleString()}
+                      <CurrencyDisplay amount={payout.amount} />
                     </p>
                   </div>
                   <div>
@@ -505,7 +511,7 @@ export default function PayoutsPage() {
                   </div>
                   <div className="flex space-x-2">
                     <button 
-                      onClick={() => handleEditPayout(payout)}
+                      onClick={() => handleEditPayoutClick(payout)}
                       className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" 
                       title="Edit"
                     >

@@ -1,6 +1,7 @@
 'use client'
 
 import { Coins, TrendingUp, Wallet, DollarSign } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 interface User {
   id: number
@@ -37,7 +38,7 @@ export default function DashboardCards({ user, totalPayouts = 500 }: DashboardCa
     },
     {
       title: 'Total Profit',
-      value: `₫${totalProfit.toFixed(2)}`,
+      value: <CurrencyDisplay amount={totalProfit} />,
       subtitle: 'Lifetime Profit',
       icon: TrendingUp,
       color: 'text-green-600',
@@ -46,7 +47,7 @@ export default function DashboardCards({ user, totalPayouts = 500 }: DashboardCa
     },
     {
       title: 'Total Balance',
-      value: `₫${totalBalance.toFixed(2)}`,
+      value: <CurrencyDisplay amount={totalBalance} />,
       subtitle: 'Invested + Profit',
       icon: Wallet,
       color: 'text-blue-600',
@@ -55,7 +56,7 @@ export default function DashboardCards({ user, totalPayouts = 500 }: DashboardCa
     },
     {
       title: 'USDT Profit',
-      value: `₫${netUsdtProfit.toFixed(2)}`,
+      value: <CurrencyDisplay amount={netUsdtProfit} />,
       subtitle: 'Total USDT Earnings (Net)',
       icon: TrendingUp,
       color: 'text-green-600',

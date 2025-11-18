@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Users, Eye, Edit, Trash2, Plus } from 'lucide-react'
+import CurrencyDisplay from '../common/CurrencyDisplay'
 
 export default function InvestorsTable() {
   const [investors, setInvestors] = useState([
@@ -121,10 +122,10 @@ export default function InvestorsTable() {
                   <td className="py-3 px-4">
                     <div>
                       <span className="font-medium text-green-600 dark:text-green-400">
-                        ₫{investor.totalProfit.toLocaleString()}
+                        <CurrencyDisplay amount={investor.totalProfit} />
                       </span>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        USDT: ₫{investor.profitUsdt.toLocaleString()}
+                        USDT: <CurrencyDisplay amount={investor.profitUsdt} />
                       </p>
                     </div>
                   </td>

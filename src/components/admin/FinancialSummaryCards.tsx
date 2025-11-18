@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { DollarSign, Coins, TrendingUp, Wallet, Users, CreditCard, FileText } from 'lucide-react'
-import { getDashboardUrl } from '@/config/api'
+import { apiService } from '@/services/api'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay'
 
 export default function FinancialSummaryCards() {
   const [financialData, setFinancialData] = useState({
@@ -19,25 +20,17 @@ export default function FinancialSummaryCards() {
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
-        const token = localStorage.getItem('token')
-        const response = await fetch(getDashboardUrl('SUMMARY'), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        })
-        const data = await response.json()
+        const response = await apiService.getDashboardSummary()
         
-        if (response.ok && data.success && data.data) {
+        if (response.success && response.data) {
           setFinancialData({
-            totalInvestedUsd: data.data.total_invested_usd || 0,
-            totalInvestedAed: data.data.total_invested_aed || 0,
-            totalProfit: data.data.total_profit_aed || 0,
-            totalBalance: data.data.total_balance_aed || 0,
-            totalInvestorsProfit: data.data.total_profit_aed || 0,
-            totalPayoutInvestor: data.data.total_payouts_aed || 0,
-            adminExpenseAmount: data.data.total_expenses_aed || 0
+            totalInvestedUsd: response.data.total_invested_usd || 0,
+            totalInvestedAed: response.data.total_invested_aed || 0,
+            totalProfit: response.data.total_profit_aed || 0,
+            totalBalance: response.data.total_balance_aed || 0,
+            totalInvestorsProfit: response.data.total_profit_aed || 0,
+            totalPayoutInvestor: response.data.total_payouts_aed || 0,
+            adminExpenseAmount: response.data.total_expenses_aed || 0
           })
         }
       } catch (error) {
@@ -51,7 +44,7 @@ export default function FinancialSummaryCards() {
     fetchFinancialData()
   }, [])
 
-  const cards = [
+  const cards = useMemo(() => [
     {
       title: 'Initial Investment (USD)',
       value: `$${financialData.totalInvestedUsd.toLocaleString()}`,
@@ -62,7 +55,7 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Initial Balance (AED)',
-      value: `₫${financialData.totalInvestedAed.toLocaleString()}`,
+      value: <CurrencyDisplay amount={financialData.totalInvestedAed} />,
       subtitle: 'Total AED Investment',
       icon: Coins,
       color: 'text-blue-600 dark:text-blue-400',
@@ -70,7 +63,7 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Total Profit',
-      value: `₫${financialData.totalProfit.toFixed(2)}`,
+      value: <CurrencyDisplay amount={financialData.totalProfit} />,
       subtitle: 'Overall Profit',
       icon: TrendingUp,
       color: 'text-green-600 dark:text-green-400',
@@ -78,7 +71,7 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Total Balance',
-      value: `₫${financialData.totalBalance.toFixed(2)}`,
+      value: <CurrencyDisplay amount={financialData.totalBalance} />,
       subtitle: 'Current Balance',
       icon: Wallet,
       color: 'text-indigo-600 dark:text-indigo-400',
@@ -86,7 +79,7 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Investors Profit',
-      value: `₫${financialData.totalInvestorsProfit.toFixed(2)}`,
+      value: <CurrencyDisplay amount={financialData.totalInvestorsProfit} />,
       subtitle: 'Total Investors Profit',
       icon: Users,
       color: 'text-cyan-600 dark:text-cyan-400',
@@ -94,7 +87,7 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Payout Investor',
-      value: `₫${financialData.totalPayoutInvestor.toFixed(2)}`,
+      value: <CurrencyDisplay amount={financialData.totalPayoutInvestor} />,
       subtitle: 'Total Payout Investor',
       icon: CreditCard,
       color: 'text-yellow-600 dark:text-yellow-400',
@@ -102,13 +95,13 @@ export default function FinancialSummaryCards() {
     },
     {
       title: 'Admin Expense',
-      value: `₫${financialData.adminExpenseAmount.toFixed(2)}`,
+      value: <CurrencyDisplay amount={financialData.adminExpenseAmount} />,
       subtitle: 'Admin Expense Amount',
       icon: FileText,
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-100 dark:bg-red-900/20'
     }
-  ]
+  ], [financialData])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { X, ArrowRightLeft, Flag, CreditCard, FileText, DollarSign, Calendar, ArrowDown, ArrowUp, UserPlus, User, Mail, Lock } from 'lucide-react'
 import { getApiUrl } from '@/config/api'
+import { useAlert } from '@/components/common/Alert'
+import ExtraProfitAllocationModal from './ExtraProfitAllocationModal'
 
 interface TransactionModalsProps {
   showInrModal: boolean
@@ -15,6 +17,7 @@ interface TransactionModalsProps {
   onClosePayoutModal: () => void
   onCloseExpenseModal: () => void
   onCloseCustomerModal: () => void
+  onTransactionChange?: () => void // Callback to trigger dashboard refresh
 }
 
 export default function TransactionModals({
@@ -27,21 +30,134 @@ export default function TransactionModals({
   onCloseUaeModal,
   onClosePayoutModal,
   onCloseExpenseModal,
-  onCloseCustomerModal
+  onCloseCustomerModal,
+  onTransactionChange
 }: TransactionModalsProps) {
+  const { showAlert, AlertComponent } = useAlert()
+  const [showExtraProfitModal, setShowExtraProfitModal] = useState(false)
+  const [extraProfitData, setExtraProfitData] = useState<{
+    allocation_id: number
+    extra_amount: number
+    extra_profit_amount: number
+  } | null>(null)
 
-  const handleInrSubmit = (e: React.FormEvent) => {
+  const handleInrSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle INR transaction submission
-    console.log('INR Transaction submitted')
-    onCloseInrModal()
+    
+    try {
+      const form = e.currentTarget as HTMLFormElement
+      const formData = new FormData(form)
+      
+      // Get form values
+      const amount = parseFloat((form.querySelector('#inrAmount') as HTMLInputElement)?.value || '0')
+      const date = (form.querySelector('#inrDate') as HTMLInputElement)?.value || ''
+      const aedToUsdt = parseFloat((form.querySelector('#aedToUsdt') as HTMLInputElement)?.value || '0')
+      const inrToAed = parseFloat((form.querySelector('#inrToAed') as HTMLInputElement)?.value || '0')
+      const usdtSellingInr = parseFloat((form.querySelector('#usdtSellingInr') as HTMLInputElement)?.value || '0')
+      
+      // Validate required fields
+      if (!amount || !date || !aedToUsdt || !inrToAed || !usdtSellingInr) {
+        showAlert('Please fill in all required fields', 'error')
+        return
+      }
+      
+      // Import API service
+      const { apiService } = await import('@/services/api')
+      
+      // Create transaction data
+      const transactionData = {
+        amount,
+        date,
+        aed_to_usdt: aedToUsdt,
+        inr_to_aed: inrToAed,
+        usdt_selling_inr: usdtSellingInr
+      }
+      
+      // Call API to create transaction
+      const response = await apiService.createInrTransaction(transactionData)
+      
+      if (response.success) {
+        // Always refresh transaction list when transaction is created
+        onTransactionChange?.()
+        
+        if (response.extra_profit) {
+          // Show extra profit allocation modal
+          setExtraProfitData({
+            allocation_id: response.allocation_id,
+            extra_amount: response.extra_amount,
+            extra_profit_amount: response.extra_profit_amount
+          })
+          setShowExtraProfitModal(true)
+        } else {
+          showAlert('INR Transaction saved successfully!')
+          form.reset()
+        }
+        onCloseInrModal()
+      } else {
+        showAlert(`Failed to save transaction: ${response.error}`, 'error')
+      }
+    } catch (error) {
+      console.error('Error creating INR transaction:', error)
+      showAlert('Network error occurred while saving transaction', 'error')
+    }
   }
 
-  const handleUaeSubmit = (e: React.FormEvent) => {
+  const handleUaeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle UAE transaction submission
-    console.log('UAE Transaction submitted')
-    onCloseUaeModal()
+    
+    try {
+      const form = e.currentTarget as HTMLFormElement
+      
+      // Get form values
+      const amount = parseFloat((form.querySelector('#uaeAmount') as HTMLInputElement)?.value || '0')
+      const date = (form.querySelector('#uaeDate') as HTMLInputElement)?.value || ''
+      const usdtBuyRate = parseFloat((form.querySelector('#usdtBuyRate') as HTMLInputElement)?.value || '0')
+      const usdtSellRate = parseFloat((form.querySelector('#usdtSellRate') as HTMLInputElement)?.value || '0')
+      
+      // Validate required fields
+      if (!amount || !date || !usdtBuyRate || !usdtSellRate) {
+        showAlert('Please fill in all required fields', 'error')
+        return
+      }
+      
+      // Import API service
+      const { apiService } = await import('@/services/api')
+      
+      // Create transaction data
+      const transactionData = {
+        amount,
+        date,
+        usdt_buy_rate: usdtBuyRate,
+        usdt_sell_rate: usdtSellRate
+      }
+      
+      // Call API to create transaction
+      const response = await apiService.createUaeTransaction(transactionData)
+      
+      if (response.success) {
+        // Always refresh transaction list when transaction is created
+        onTransactionChange?.()
+        
+        if (response.extra_profit) {
+          // Show extra profit allocation modal
+          setExtraProfitData({
+            allocation_id: response.allocation_id,
+            extra_amount: response.extra_amount,
+            extra_profit_amount: response.extra_profit_amount
+          })
+          setShowExtraProfitModal(true)
+        } else {
+          showAlert('UAE Transaction saved successfully!')
+          form.reset()
+        }
+        onCloseUaeModal()
+      } else {
+        showAlert(`Failed to save transaction: ${response.error}`, 'error')
+      }
+    } catch (error) {
+      console.error('Error creating UAE transaction:', error)
+      showAlert('Network error occurred while saving transaction', 'error')
+    }
   }
 
   const handlePayoutSubmit = async (e: React.FormEvent) => {
@@ -79,7 +195,10 @@ export default function TransactionModals({
       
       if (response.ok && data.success) {
         console.log('Payout created successfully:', data.data)
-        alert('Payout added successfully!')
+        showAlert('Payout processed successfully!')
+        // Clear form
+        const form = e.currentTarget as HTMLFormElement
+        form.reset()
         onClosePayoutModal()
         // Refresh the page to show updated data
         window.location.reload()
@@ -107,29 +226,29 @@ export default function TransactionModals({
     }
     
     try {
-      const response = await fetch('https://api.arbitrageyield.com/api/expenses/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          description: description,
-          expense_date: date
-        }),
-      })
+      // Import API service
+      const { apiService } = await import('@/services/api')
       
-      const data = await response.json()
+      // Create expense data
+      const expenseData = {
+        amount: parseFloat(amount),
+        description: description,
+        expense_date: date
+      }
       
-      if (response.ok && data.success) {
-        console.log('Expense created successfully:', data.data)
-        alert('Expense added successfully!')
+      // Call API to create expense
+      const response = await apiService.createExpense(expenseData)
+      
+      if (response.success) {
+        showAlert('Expense recorded successfully!')
+        // Clear form
+        const form = e.currentTarget as HTMLFormElement
+        form.reset()
         onCloseExpenseModal()
         // Refresh the page to show updated data
         window.location.reload()
       } else {
-        console.error('Failed to create expense:', data.message)
-        alert(`Failed to create expense: ${data.message}`)
+        alert(`Failed to create expense: ${response.error}`)
       }
     } catch (error) {
       console.error('Error creating expense:', error)
@@ -141,11 +260,16 @@ export default function TransactionModals({
     e.preventDefault()
     // Handle customer registration submission
     console.log('Customer registration submitted')
+    showAlert('Customer registered successfully!')
+    // Clear form
+    const form = e.currentTarget as HTMLFormElement
+    form.reset()
     onCloseCustomerModal()
   }
 
   return (
     <>
+      {AlertComponent}
       {/* INR Transaction Modal */}
       {showInrModal && (
         <div className="fixed inset-0 z-50">
@@ -194,7 +318,10 @@ export default function TransactionModals({
                 {/* Rates Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label htmlFor="aedToUsdt" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">AED to USDT Rate</label>
+                    <label htmlFor="aedToUsdt" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mr-1" />
+                      to USDT Rate
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <ArrowRightLeft className="text-gray-400" />
@@ -203,7 +330,9 @@ export default function TransactionModals({
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="inrToAed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">INR to AED Rate</label>
+                    <label htmlFor="inrToAed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      INR to <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" /> Rate
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <ArrowRightLeft className="text-gray-400" />
@@ -544,9 +673,12 @@ export default function TransactionModals({
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="aedConversionRate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">AED Conversion Rate</label>
+                    <label htmlFor="aedConversionRate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mr-1" />
+                      Conversion Rate
+                    </label>
                     <input type="number" className="w-full px-4 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white transition-all duration-200 text-lg font-medium" id="aedConversionRate" step="0.001" min="0" defaultValue="3.667" required />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Default: 3.667 (1 USD = 3.667 AED)</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Default: 3.667 (1 USD = 3.667 <img src="/images/Dhiram.png" alt="AED" className="inline w-3 h-3 align-text-bottom mx-1" />)</p>
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="roiMin" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Min ROI (%)</label>
@@ -575,6 +707,25 @@ export default function TransactionModals({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Extra Profit Allocation Modal */}
+      {extraProfitData && (
+        <ExtraProfitAllocationModal
+          isOpen={showExtraProfitModal}
+          onClose={() => {
+            setShowExtraProfitModal(false)
+            setExtraProfitData(null)
+          }}
+          allocationId={extraProfitData.allocation_id}
+          extraAmount={extraProfitData.extra_amount}
+          extraProfitAmount={extraProfitData.extra_profit_amount}
+          transactionType="INR"
+          onSuccess={() => {
+            showAlert('Extra profit allocated successfully!')
+            onTransactionChange?.()
+          }}
+        />
       )}
     </>
   )

@@ -1,15 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Users, UserPlus, DollarSign, FileText } from 'lucide-react'
+import { Users, DollarSign, FileText } from 'lucide-react'
 
 interface AdminHeaderProps {
   onShowPayoutModal?: () => void
   onShowExpenseModal?: () => void
-  onShowCustomerModal?: () => void
 }
 
-export default function AdminHeader({ onShowPayoutModal, onShowExpenseModal, onShowCustomerModal }: AdminHeaderProps) {
+export default function AdminHeader({ onShowPayoutModal, onShowExpenseModal }: AdminHeaderProps) {
   const router = useRouter()
 
   return (
@@ -27,13 +26,6 @@ export default function AdminHeader({ onShowPayoutModal, onShowExpenseModal, onS
           </p>
         </div>
         <div className="mt-4 lg:mt-0 flex flex-wrap gap-3">
-          <button
-            onClick={onShowCustomerModal}
-            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add New Investor
-          </button>
           <button
             onClick={onShowPayoutModal}
             className="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
