@@ -134,8 +134,9 @@ export default function ExtraProfitAllocationModal({
       )
 
       if (response.success) {
+        const userName = response.user_name || 'the selected user'
         setSuccess(
-          `Extra profit of ${allocatedAmount.toFixed(2)} AED allocated to ${response.user_name}. ` +
+          `Extra profit of ${allocatedAmount.toFixed(2)} AED allocated to ${userName}. ` +
           `Remaining ${remainingAmount.toFixed(2)} AED assigned to Admin.`
         )
         

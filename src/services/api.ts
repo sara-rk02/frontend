@@ -48,6 +48,13 @@ interface ApiResponse<T> {
   error_type?: string
 }
 
+interface ExtraProfitAllocationResponse {
+  success: boolean
+  user_name?: string
+  message?: string
+  error?: string
+}
+
 interface LoginRequest {
   email: string
   password: string
@@ -800,7 +807,7 @@ class ApiService {
   }
 
   // Extra Profit Allocation
-  async allocateExtraProfit(allocationId: number, userId: number, allocatedAmount: number): Promise<ApiResponse<any>> {
+  async allocateExtraProfit(allocationId: number, userId: number, allocatedAmount: number): Promise<ExtraProfitAllocationResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/api/transactions/extra-profit-allocation/`, {
         method: 'POST',
@@ -870,4 +877,4 @@ class ApiService {
 }
 
 export const apiService = new ApiService()
-export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData }
+export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData, ExtraProfitAllocationResponse }
