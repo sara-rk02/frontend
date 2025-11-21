@@ -55,6 +55,17 @@ interface ExtraProfitAllocationResponse {
   error?: string
 }
 
+interface TransactionResponse {
+  success: boolean
+  data?: any
+  extra_profit?: boolean
+  extra_amount?: number
+  extra_profit_amount?: number
+  allocation_id?: number
+  message?: string
+  error?: string
+}
+
 interface LoginRequest {
   email: string
   password: string
@@ -534,7 +545,7 @@ class ApiService {
     aed_to_usdt: number
     inr_to_aed: number
     usdt_selling_inr: number
-  }): Promise<ApiResponse<any>> {
+  }): Promise<TransactionResponse> {
     try {
       const response = await fetch(getApiUrl('/api/transactions/inr/'), {
         method: 'POST',
@@ -559,7 +570,7 @@ class ApiService {
     date: string
     usdt_buy_rate: number
     usdt_sell_rate: number
-  }): Promise<ApiResponse<any>> {
+  }): Promise<TransactionResponse> {
     try {
       const response = await fetch(getApiUrl('/api/transactions/uae/'), {
         method: 'POST',
@@ -579,30 +590,6 @@ class ApiService {
     }
   }
 
-  async allocateExtraProfit(allocationData: {
-    allocation_id: number
-    allocated_to_user_id: number
-    allocated_to_role: string
-    allocated_amount: number
-  }): Promise<ApiResponse<any>> {
-    try {
-      const response = await fetch(getApiUrl('/api/transactions/allocate_extra_profit/'), {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(allocationData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        return { success: true, data: data.data }
-      } else {
-        return { success: false, error: data.message || 'Failed to allocate extra profit' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error occurred' }
-    }
-  }
 
   async getInitialInvestment(): Promise<ApiResponse<any>> {
     try {
@@ -877,4 +864,4 @@ class ApiService {
 }
 
 export const apiService = new ApiService()
-export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData, ExtraProfitAllocationResponse }
+export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData, ExtraProfitAllocationResponse, TransactionResponse }

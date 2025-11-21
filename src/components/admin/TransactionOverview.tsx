@@ -23,6 +23,22 @@ interface Transaction {
   date: string
   created_at?: string
   timestamp?: string
+  // INR transaction specific fields
+  aed_to_usdt?: number
+  inr_to_aed?: number
+  usdt_selling_inr?: number
+  aed_to_usdt_total?: number
+  total_inr_sold?: number
+  aed_in_hand?: number
+  usdt_to_inr_cost?: number
+  usdt_to_inr_cost_sold?: number
+  profit_inr?: number
+  profit_aed?: number
+  roi_percent?: number
+  // UAE transaction specific fields
+  usdt_buy_rate?: number
+  usdt_sell_rate?: number
+  aed_to_usd_cost?: number
 }
 
 interface TransactionOverviewProps {
@@ -303,18 +319,18 @@ export default function TransactionOverview({ onShowInrModal, onShowUaeModal, on
                       {transaction.usdt_to_inr_cost_sold?.toFixed(2) || 'N/A'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`font-medium ${transaction.profit_inr >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-medium ${(transaction.profit_inr ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.profit_inr?.toFixed(2) || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`font-medium ${transaction.profit_aed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-medium ${(transaction.profit_aed ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.profit_aed?.toFixed(2) || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.roi_percent >= 0 
+                        (transaction.roi_percent ?? 0) >= 0 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
                           : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
                       }`}>
@@ -337,13 +353,13 @@ export default function TransactionOverview({ onShowInrModal, onShowUaeModal, on
                       {transaction.aed_to_usd_cost?.toFixed(2) || 'N/A'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`font-medium ${transaction.profit_aed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-medium ${(transaction.profit_aed ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.profit_aed?.toFixed(2) || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        transaction.roi_percent >= 0 
+                        (transaction.roi_percent ?? 0) >= 0 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
                           : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
                       }`}>

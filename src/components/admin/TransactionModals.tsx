@@ -80,7 +80,7 @@ export default function TransactionModals({
         // Always refresh transaction list when transaction is created
         onTransactionChange?.()
         
-        if (response.extra_profit) {
+        if (response.extra_profit && response.allocation_id !== undefined && response.extra_amount !== undefined && response.extra_profit_amount !== undefined) {
           // Show extra profit allocation modal
           setExtraProfitData({
             allocation_id: response.allocation_id,
@@ -138,7 +138,7 @@ export default function TransactionModals({
         // Always refresh transaction list when transaction is created
         onTransactionChange?.()
         
-        if (response.extra_profit) {
+        if (response.extra_profit && response.allocation_id !== undefined && response.extra_amount !== undefined && response.extra_profit_amount !== undefined) {
           // Show extra profit allocation modal
           setExtraProfitData({
             allocation_id: response.allocation_id,
