@@ -45,25 +45,6 @@ interface ApiResponse<T> {
   data?: T
   message?: string
   error?: string
-  error_type?: string
-}
-
-interface ExtraProfitAllocationResponse {
-  success: boolean
-  user_name?: string
-  message?: string
-  error?: string
-}
-
-interface TransactionResponse {
-  success: boolean
-  data?: any
-  extra_profit?: boolean
-  extra_amount?: number
-  extra_profit_amount?: number
-  allocation_id?: number
-  message?: string
-  error?: string
 }
 
 interface LoginRequest {
@@ -173,7 +154,7 @@ class ApiService {
   private baseUrl: string
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.arbitrageyield.com'
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -194,48 +175,23 @@ class ApiService {
         body: JSON.stringify(credentials),
       })
 
-      // Check if response is ok before trying to parse JSON
-      if (!response.ok) {
-        // Try to parse error response
-        let errorData
-        try {
-          errorData = await response.json()
-        } catch {
-          errorData = { message: `HTTP ${response.status}: ${response.statusText}` }
-        }
-        return { 
-          success: false, 
-          error: errorData.message || `Login failed with status ${response.status}`,
-          error_type: errorData.error_type
-        }
-      }
-
       const data = await response.json()
 
-      if (data.success) {
+      if (response.ok) {
         // Backend returns { success, user, token, message }
         // Frontend expects { success, data: { user, token } }
-        // Note: Backend may not return token, so we'll create a simple one
         return { 
           success: true, 
           data: {
             user: data.user,
-            token: data.token || `user_token_${data.user.id}` // Fallback token if not provided
+            token: data.token
           }
         }
       } else {
-        return { 
-          success: false, 
-          error: data.message || 'Login failed',
-          error_type: data.error_type
-        }
+        return { success: false, error: data.message || 'Login failed' }
       }
     } catch (error) {
-      console.error('Login error:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Network error occurred' 
-      }
+      return { success: false, error: 'Network error occurred' }
     }
   }
 
@@ -291,25 +247,6 @@ class ApiService {
         return { success: true, data }
       } else {
         return { success: false, error: data.message || 'Failed to fetch investors' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error occurred' }
-    }
-  }
-
-  async getUsers(): Promise<ApiResponse<any[]>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/users/`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        return { success: true, data }
-      } else {
-        return { success: false, error: data.message || 'Failed to fetch users' }
       }
     } catch (error) {
       return { success: false, error: 'Network error occurred' }
@@ -545,7 +482,7 @@ class ApiService {
     aed_to_usdt: number
     inr_to_aed: number
     usdt_selling_inr: number
-  }): Promise<TransactionResponse> {
+  }): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(getApiUrl('/api/transactions/inr/'), {
         method: 'POST',
@@ -570,7 +507,7 @@ class ApiService {
     date: string
     usdt_buy_rate: number
     usdt_sell_rate: number
-  }): Promise<TransactionResponse> {
+  }): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(getApiUrl('/api/transactions/uae/'), {
         method: 'POST',
@@ -590,6 +527,30 @@ class ApiService {
     }
   }
 
+  async allocateExtraProfit(allocationData: {
+    allocation_id: number
+    allocated_to_user_id: number
+    allocated_to_role: string
+    allocated_amount: number
+  }): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(getApiUrl('/api/transactions/allocate_extra_profit/'), {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(allocationData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { success: true, data: data.data }
+      } else {
+        return { success: false, error: data.message || 'Failed to allocate extra profit' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
 
   async getInitialInvestment(): Promise<ApiResponse<any>> {
     try {
@@ -636,7 +597,7 @@ class ApiService {
     expense_date: string
   }): Promise<ApiResponse<any>> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/expenses/`, {
+      const response = await fetch(getExpensesUrl('CREATE'), {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
@@ -655,7 +616,6 @@ class ApiService {
         return { success: false, error: data.message || 'Failed to create expense' }
       }
     } catch (error) {
-      console.error('Error creating expense:', error)
       return { success: false, error: 'Network error occurred' }
     }
   }
@@ -794,7 +754,7 @@ class ApiService {
   }
 
   // Extra Profit Allocation
-  async allocateExtraProfit(allocationId: number, userId: number, allocatedAmount: number): Promise<ExtraProfitAllocationResponse> {
+  async allocateExtraProfit(allocationId: number, userId: number, allocatedAmount: number): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(`${this.baseUrl}/api/transactions/extra-profit-allocation/`, {
         method: 'POST',
@@ -821,47 +781,7 @@ class ApiService {
       return { success: false, error: 'Network error occurred' }
     }
   }
-
-  // Payouts methods
-  async getPayouts(): Promise<ApiResponse<any[]>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/payouts/`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        return { success: true, data: data.data || data }
-      } else {
-        return { success: false, error: data.message || 'Failed to fetch payouts' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error occurred' }
-    }
-  }
-
-  // Expenses methods
-  async getExpenses(): Promise<ApiResponse<any[]>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/expenses/`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        return { success: true, data: data.data || data }
-      } else {
-        return { success: false, error: data.message || 'Failed to fetch expenses' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error occurred' }
-    }
-  }
 }
 
 export const apiService = new ApiService()
-export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData, ExtraProfitAllocationResponse, TransactionResponse }
+export type { LoginRequest, LoginResponse, RegisterInvestorRequest, ChartData, Broker, BrokerCommissionHistory, CreateBrokerRequest, BrokerPayout, BrokerDashboardData }
