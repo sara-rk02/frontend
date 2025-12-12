@@ -45,6 +45,7 @@ interface ApiResponse<T> {
   data?: T
   message?: string
   error?: string
+  [key: string]: any // Allow additional properties for extended responses
 }
 
 interface LoginRequest {
