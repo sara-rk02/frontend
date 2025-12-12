@@ -1,6 +1,6 @@
 // API service for communicating with the Flask backend
 
-import { getApiUrl, getAuthUrl, getDashboardUrl, getChartUrl, getBrokerUrl, getPayoutUrl } from '@/config/api'
+import { getApiUrl, getAuthUrl, getDashboardUrl, getChartUrl, getBrokerUrl, getPayoutUrl, getExpensesUrl } from '@/config/api'
 
 // Request deduplication and caching
 const requestCache = new Map<string, { data: any; timestamp: number }>()
@@ -591,6 +591,27 @@ class ApiService {
   }
 
   // Expense methods
+  async getExpenses(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(getExpensesUrl('LIST'), {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Backend may return data directly or wrapped in a data property
+        const expenses = data.data || data
+        return { success: true, data: Array.isArray(expenses) ? expenses : [] }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch expenses' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
   async createExpense(expenseData: {
     amount: number
     description: string
