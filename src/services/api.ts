@@ -570,31 +570,6 @@ class ApiService {
     }
   }
 
-  async allocateExtraProfit(allocationData: {
-    allocation_id: number
-    allocated_to_user_id: number
-    allocated_to_role: string
-    allocated_amount: number
-  }): Promise<ApiResponse<any>> {
-    try {
-      const response = await fetch(getApiUrl('/api/transactions/allocate_extra_profit/'), {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(allocationData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        return { success: true, data: data.data }
-      } else {
-        return { success: false, error: data.message || 'Failed to allocate extra profit' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error occurred' }
-    }
-  }
-
   async getInitialInvestment(): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(getApiUrl('/api/transactions/initial_investment/'), {
