@@ -10,8 +10,8 @@ export default function AuthLoginPage() {
   const router = useRouter()
   const { login } = useAuthContext()
   const [formData, setFormData] = useState({
-    email: 'admin1@arbitrage.com',
-    password: 'admin123',
+    email: '',
+    password: '',
     role: 'admin'
   })
   const [error, setError] = useState<string | null>(null)
@@ -21,18 +21,9 @@ export default function AuthLoginPage() {
   }
 
   const handleRoleChange = (newRole: string) => {
-    // Auto-fill credentials based on role selection (DigitalOcean PostgreSQL)
-    const credentials = {
-      admin: { email: 'admin1@arbitrage.com', password: 'admin123' },
-      investor: { email: 'mohammed@investor.com', password: 'investor123' },
-      broker: { email: 'ahmed@broker.com', password: 'broker123' }
-    }
-    
     setFormData({ 
       ...formData, 
-      role: newRole,
-      email: credentials[newRole as keyof typeof credentials].email,
-      password: credentials[newRole as keyof typeof credentials].password
+      role: newRole
     })
   }
 

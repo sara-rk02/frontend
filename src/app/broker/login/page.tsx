@@ -7,8 +7,8 @@ import { Eye, EyeOff, User, Lock } from 'lucide-react'
 
 export default function BrokerLoginPage() {
   const [formData, setFormData] = useState({
-    email: 'alpha@brokerage.com',
-    password: 'broker123'
+    email: '',
+    password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -138,16 +138,6 @@ export default function BrokerLoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Demo Credentials:</h3>
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-              <p><strong>Alpha Brokerage:</strong> alpha@brokerage.com / broker123</p>
-              <p><strong>Beta Financial:</strong> beta@financial.com / broker123</p>
-              <p><strong>Gamma Investments:</strong> gamma@investments.com / broker123</p>
-            </div>
-          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">

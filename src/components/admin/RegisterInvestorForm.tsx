@@ -14,10 +14,10 @@ interface RegisterInvestorFormProps {
 export default function RegisterInvestorForm({ onSuccess }: RegisterInvestorFormProps) {
   const { showAlert, AlertComponent } = useAlert()
   const [formData, setFormData] = useState({
-    name: 'New Investor',
-    email: 'new.investor@example.com',
-    password: 'investor123',
-    invested_amount: '15000',
+    name: '',
+    email: '',
+    password: '',
+    invested_amount: '',
     aed_conversion_rate: '3.667',
     roi_min: '0.5',
     roi_max: '1.5',
@@ -38,10 +38,10 @@ export default function RegisterInvestorForm({ onSuccess }: RegisterInvestorForm
   // Function to clear form
   const clearForm = () => {
     setFormData({
-      name: 'New Investor',
-      email: 'new.investor@example.com',
-      password: 'investor123',
-      invested_amount: '15000',
+      name: '',
+      email: '',
+      password: '',
+      invested_amount: '',
       aed_conversion_rate: '3.667',
       roi_min: '0.5',
       roi_max: '1.5',

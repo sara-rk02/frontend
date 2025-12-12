@@ -10,10 +10,10 @@ import { getAuthUrl } from '@/config/api'
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    name: 'Test Investor',
-    email: 'test.investor@example.com',
-    password: 'test123',
-    invested_amount: '10000',
+    name: '',
+    email: '',
+    password: '',
+    invested_amount: '',
     aed_conversion_rate: '3.667',
     roi_min: '0.5',
     roi_max: '1.5'
