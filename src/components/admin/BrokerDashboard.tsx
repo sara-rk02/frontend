@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Building2, Users, DollarSign, TrendingUp, Calendar, Plus, Eye } from 'lucide-react'
 import { apiService, Broker, BrokerCommissionHistory } from '@/services/api'
 
@@ -117,7 +118,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Commission</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {totalCommission.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" />
+                {totalCommission.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" />
               </p>
             </div>
             <DollarSign className="h-8 w-8 text-green-600" />
@@ -130,7 +131,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Top Broker</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{topBroker.name}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {topBroker.total_commission_aed.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" />
+                {topBroker.total_commission_aed.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" />
               </p>
             </div>
             <TrendingUp className="h-8 w-8 text-purple-600" />
@@ -187,7 +188,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {broker.total_commission_aed.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" />
+                      {broker.total_commission_aed.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" />
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -241,7 +242,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
                   <div className="space-y-2">
                     <p><span className="font-medium">Email:</span> {selectedBroker.email}</p>
                     <p><span className="font-medium">ROI Range:</span> {selectedBroker.min_roi}% - {selectedBroker.max_roi}%</p>
-                    <p><span className="font-medium">Total Commission:</span> {selectedBroker.total_commission_aed.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" /></p>
+                    <p><span className="font-medium">Total Commission:</span> {selectedBroker.total_commission_aed.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" /></p>
                     <p><span className="font-medium">Status:</span> 
                       <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
                         selectedBroker.active 
@@ -264,7 +265,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
                           <p className="font-medium">{investor.name}</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{investor.email}</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Investment: {investor.invested_amount_aed?.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" />
+                            Investment: {investor.invested_amount_aed?.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" />
                           </p>
                         </div>
                       ))
@@ -295,7 +296,7 @@ export default function BrokerDashboard({ onAddBroker }: BrokerDashboardProps) {
                             <td className="px-4 py-2">{new Date(record.date).toLocaleDateString()}</td>
                             <td className="px-4 py-2">Investor #{record.investor_id}</td>
                             <td className="px-4 py-2">{record.daily_rate}%</td>
-                            <td className="px-4 py-2">{record.commission_aed.toLocaleString()} <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mx-1" /></td>
+                            <td className="px-4 py-2">{record.commission_aed.toLocaleString()} <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mx-1" /></td>
                           </tr>
                         ))}
                       </tbody>

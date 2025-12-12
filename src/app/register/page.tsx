@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Navigation from '@/components/layout/Navigation'
 import { User, Mail, Lock, DollarSign, ArrowRightLeft, Percent, ArrowLeft } from 'lucide-react'
 import { getAuthUrl } from '@/config/api'
@@ -186,7 +187,7 @@ export default function RegisterPage() {
                 
                 <div>
                   <label htmlFor="aed_conversion_rate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <img src="/images/Dhiram.png" alt="AED" className="inline w-4 h-4 align-text-bottom mr-1" />
+                    <Image src="/images/Dhiram.png" alt="AED" width={16} height={16} className="inline align-text-bottom mr-1" />
                     Conversion Rate
                   </label>
                   <div className="relative">
@@ -207,7 +208,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Default: 3.667 (1 USD = 3.667 <img src="/images/Dhiram.png" alt="AED" className="inline w-3 h-3 align-text-bottom mx-1" />)
+                    Default: 3.667 (1 USD = 3.667 <Image src="/images/Dhiram.png" alt="AED" width={12} height={12} className="inline align-text-bottom mx-1" />)
                   </p>
                 </div>
                 
