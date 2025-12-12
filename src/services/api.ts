@@ -253,6 +253,27 @@ class ApiService {
     }
   }
 
+  async getUsers(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(getApiUrl('/api/users/'), {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Backend may return data directly or wrapped in a data property
+        const users = data.data || data
+        return { success: true, data: Array.isArray(users) ? users : [] }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch users' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
   async getDashboardData(): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(getDashboardUrl('SUMMARY'), {
@@ -424,6 +445,27 @@ class ApiService {
         return { success: true, data: data.data }
       } else {
         return { success: false, error: data.message || 'Failed to create payout' }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' }
+    }
+  }
+
+  async getPayouts(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(getPayoutUrl('LIST'), {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Backend may return data directly or wrapped in a data property
+        const payouts = data.data || data
+        return { success: true, data: Array.isArray(payouts) ? payouts : [] }
+      } else {
+        return { success: false, error: data.message || 'Failed to fetch payouts' }
       }
     } catch (error) {
       return { success: false, error: 'Network error occurred' }

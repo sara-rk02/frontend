@@ -80,12 +80,13 @@ export default function TransactionModals({
         // Always refresh transaction list when transaction is created
         onTransactionChange?.()
         
-        if (response.extra_profit && response.allocation_id !== undefined && response.extra_amount !== undefined && response.extra_profit_amount !== undefined) {
+        const responseData = response as any
+        if (responseData.extra_profit && responseData.allocation_id !== undefined && responseData.extra_amount !== undefined && responseData.extra_profit_amount !== undefined) {
           // Show extra profit allocation modal
           setExtraProfitData({
-            allocation_id: response.allocation_id,
-            extra_amount: response.extra_amount,
-            extra_profit_amount: response.extra_profit_amount
+            allocation_id: responseData.allocation_id,
+            extra_amount: responseData.extra_amount,
+            extra_profit_amount: responseData.extra_profit_amount
           })
           setShowExtraProfitModal(true)
         } else {
@@ -138,12 +139,13 @@ export default function TransactionModals({
         // Always refresh transaction list when transaction is created
         onTransactionChange?.()
         
-        if (response.extra_profit && response.allocation_id !== undefined && response.extra_amount !== undefined && response.extra_profit_amount !== undefined) {
+        const responseData = response as any
+        if (responseData.extra_profit && responseData.allocation_id !== undefined && responseData.extra_amount !== undefined && responseData.extra_profit_amount !== undefined) {
           // Show extra profit allocation modal
           setExtraProfitData({
-            allocation_id: response.allocation_id,
-            extra_amount: response.extra_amount,
-            extra_profit_amount: response.extra_profit_amount
+            allocation_id: responseData.allocation_id,
+            extra_amount: responseData.extra_amount,
+            extra_profit_amount: responseData.extra_profit_amount
           })
           setShowExtraProfitModal(true)
         } else {
